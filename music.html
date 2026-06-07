@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Music Player</title>
+<meta name="theme-color" content="#1DB954">
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --bg:#121212;
+  --panel:#181818;
+  --panel2:#202020;
+  --panel3:#262626;
+  --line:#2e2e2e;
+  --text:#f5f5f5;
+  --muted:#b7b7b7;
+  --accent:#1DB954;
+  --accent2:#69e38b;
+  --warn:#f8d25c;
+  --danger:#ff6b6b;
+  --shadow:0 14px 40px rgba(0,0,0,.34);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:radial-gradient(circle at top,#171717 0%, #121212 45%, #0d0d0d 100%);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  overscroll-behavior:none;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:focus,input:focus,select:focus{outline:none}
+.app{
+  width:min(1180px,100%);
+  margin:0 auto;
+  padding:12px 14px 128px;
+}
+.shell{
+  background:rgba(24,24,24,.94);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:24px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 14px 10px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.menuBtn{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  border:0;
+  background:var(--panel2);
+  color:var(--text);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  flex:0 0 auto;
+}
+.brandText{min-width:0}
+#nowTitle{
+  margin:0;
+  font-size:1.12rem;
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#nowSub{
+  color:var(--muted);
+  font-size:.86rem;
+  margin-top:3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.headerRight{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border-radius:999px;
+  font-size:.86rem;
+  background:var(--panel2);
+  border:1px solid rgba(255,255,255,.05);
+  color:var(--muted);
+}
+.grid{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:16px;
+  padding:14px;
+}
+@media (max-width:960px){
+  .grid{grid-template-columns:1fr}
+}
+.coverBox{
+  background:linear-gradient(180deg,#1a1a1a,#151515);
+  border-radius:22px;
+  min-height:300px;
+  border:1px solid rgba(255,255,255,.05);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.coverBox::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.06), transparent 60%);
+  pointer-events:none;
+}
+#nowCover{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:none;
+}
+.coverFallback{
+  width:180px;
+  height:180px;
+  border-radius:28px;
+  background:linear-gradient(135deg,#242424,#111);
+  border:1px solid rgba(255,255,255,.06);
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:16px;
+  font-size:.95rem;
+}
+.playerPanel{min-width:0}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:10px;
+}
+label{
+  font-size:.86rem;
+  color:var(--muted);
+}
+input[type="text"],input[type="file"],select{
+  width:100%;
+  background:#101010;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:11px 12px;
+}
+input[type="text"]:focus,select:focus{
+  border-color:rgba(29,185,84,.7);
+  box-shadow:0 0 0 3px rgba(29,185,84,.15);
+}
+input[type="range"]{
+  width:100%;
+  accent-color:var(--accent);
+}
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:12px 0 10px;
+}
+.btn{
+  border:0;
+  border-radius:14px;
+  background:var(--panel2);
+  color:var(--text);
+  padding:10px 13px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+  transition:transform .12s ease, background .15s ease, opacity .15s ease;
+}
+.btn:hover{background:#2a2a2a}
+.btn:active{transform:scale(.96)}
+.btn.active{background:var(--accent); color:#08110c; font-weight:700;}
+.btn.warn.active{background:var(--warn); color:#181000}
+.btn.small{padding:9px 11px; border-radius:12px}
+.btn.ghost{background:transparent; box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+.btn.icon{width:42px;height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.progressWrap{display:grid; gap:8px}
+.timeLine{display:flex; justify-content:space-between; color:var(--muted); font-size:.84rem}
+.meter{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--muted);
+  font-size:.88rem;
+}
+.wave{
+  width:100%;
+  height:112px;
+  background:#0f0f0f;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.05);
+  margin-top:10px;
+}
+.notice{
+  color:var(--muted);
+  font-size:.84rem;
+  line-height:1.5;
+  margin-top:8px;
+}
+.songHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin:6px 0 12px;
+}
+.songList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.song{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:#161616;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:16px;
+  padding:10px 10px 10px 12px;
+  user-select:none;
+}
+.song.active{
+  background:rgba(29,185,84,.12);
+  border-color:rgba(29,185,84,.45);
+  box-shadow:0 0 0 1px rgba(29,185,84,.15) inset;
+}
+.song.dragging{
+  opacity:.55;
+  outline:1px dashed rgba(255,255,255,.18);
+}
+.songMain{
+  min-width:0;
+  flex:1;
+}
+.songName{
+  font-size:.98rem;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.songMeta{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:.82rem;
+}
+.songRight{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+.starBtn{
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:12px;
+  background:#262626;
+  color:#9c9c9c;
+  font-size:1.02rem;
+}
+.starBtn.active{
+  background:rgba(248,210,92,.15);
+  color:var(--warn);
+}
+.dragHandle{
+  width:32px;
+  height:38px;
+  border:0;
+  border-radius:12px;
+  background:#242424;
+  color:#b9b9b9;
+  touch-action:none;
+}
+.queueBtn{
+  border:0;
+  border-radius:12px;
+  background:#242424;
+  color:#d5d5d5;
+  padding:0 12px;
+  height:38px;
+}
+.badge{
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:.76rem;
+  color:var(--muted);
+  background:#222;
+  border:1px solid rgba(255,255,255,.06);
+}
+.miniPlayer{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:40;
+  background:rgba(16,16,16,.97);
+  border-top:1px solid rgba(255,255,255,.07);
+  box-shadow:0 -10px 28px rgba(0,0,0,.35);
+}
+.miniInner{
+  width:min(1180px,100%);
+  margin:0 auto;
+  padding:10px 14px 12px;
+  display:grid;
+  gap:8px;
+}
+.miniTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.miniNow{min-width:0; flex:1}
+#miniTitle{
+  font-size:.98rem;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#miniSub{
+  font-size:.82rem;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.miniBtns{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.miniBtns .btn{padding:9px 11px; border-radius:12px}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.54);
+  backdrop-filter:blur(6px);
+  z-index:60;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+}
+.overlay.open{
+  opacity:1;
+  pointer-events:auto;
+}
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:min(380px,92vw);
+  height:100%;
+  z-index:70;
+  background:linear-gradient(180deg, rgba(24,24,24,.99), rgba(18,18,18,.99));
+  border-right:1px solid rgba(255,255,255,.06);
+  transform:translateX(-102%);
+  transition:transform .22s ease;
+  box-shadow:20px 0 50px rgba(0,0,0,.45);
+  display:flex;
+  flex-direction:column;
+}
+.sidebar.open{transform:translateX(0)}
+.sideHead{
+  padding:14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.sideTitle{
+  font-size:1.02rem;
+  font-weight:700;
+}
+.menuList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:12px 14px 0;
+}
+.menuItem{
+  border:0;
+  width:100%;
+  text-align:left;
+  border-radius:14px;
+  background:#232323;
+  color:var(--text);
+  padding:12px 14px;
+}
+.menuItem span{
+  color:var(--muted);
+  font-size:.84rem;
+  display:block;
+  margin-top:3px;
+}
+.sideBody{
+  overflow:auto;
+  padding:14px;
+  flex:1;
+}
+.panelSection{display:none}
+.panelSection.active{display:block}
+.sectionCard{
+  background:#161616;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:18px;
+  padding:12px;
+  margin-bottom:12px;
+}
+.sectionTitle{
+  font-size:.92rem;
+  font-weight:700;
+  margin-bottom:10px;
+}
+.queueList,.statsList{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.queueItem{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 10px;
+  background:#202020;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+}
+.queueItem.current{
+  background:rgba(29,185,84,.12);
+  border-color:rgba(29,185,84,.35);
+}
+.queueItem .qTitle{
+  min-width:0;
+  flex:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.queueItem .qBtn{
+  border:0;
+  border-radius:10px;
+  background:#2a2a2a;
+  color:#ddd;
+  padding:7px 10px;
+}
+.eqGrid{
+  display:grid;
+  gap:10px;
+}
+.eqPresetRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.eqBand{
+  background:#202020;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+  padding:10px;
+}
+.eqBandTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+  color:var(--muted);
+  font-size:.84rem;
+}
+.verticalArea{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  height:220px;
+}
+.vBand{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  min-width:0;
+}
+.vTrack{
+  height:170px;
+  width:34px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.vTrack::before{
+  content:"";
+  position:absolute;
+  top:12px;
+  bottom:12px;
+  width:8px;
+  border-radius:999px;
+  background:#2a2a2a;
+  left:50%;
+  transform:translateX(-50%);
+}
+.vSlider{
+  appearance:none;
+  -webkit-appearance:none;
+  width:170px;
+  height:24px;
+  transform:rotate(-90deg);
+  background:transparent;
+}
+.vSlider::-webkit-slider-runnable-track{
+  height:8px;
+  border-radius:999px;
+  background:transparent;
+}
+.vSlider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--accent);
+  border:0;
+  box-shadow:0 0 0 4px rgba(29,185,84,.15);
+  margin-top:-5px;
+}
+.vSlider::-moz-range-thumb{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--accent);
+  border:0;
+}
+.vLabel{
+  font-size:.78rem;
+  color:var(--muted);
+}
+.vValue{
+  font-size:.8rem;
+  color:#fff;
+}
+.timerBox{
+  display:grid;
+  gap:10px;
+}
+.timerStatus{
+  color:var(--muted);
+  font-size:.86rem;
+  line-height:1.45;
+}
+.statsKV{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.kv{
+  background:#202020;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+  padding:10px;
+}
+.kv .k{color:var(--muted); font-size:.8rem}
+.kv .v{font-size:1.02rem; margin-top:5px; font-weight:700}
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:142px;
+  transform:translateX(-50%) translateY(16px);
+  opacity:0;
+  z-index:90;
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(16,16,16,.96);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:var(--shadow);
+  color:#fff;
+  transition:opacity .18s ease, transform .18s ease;
+  pointer-events:none;
+  font-size:.9rem;
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  display:none;
+  align-items:flex-start;
+  justify-content:center;
+  padding:74px 14px 18px;
+  background:rgba(0,0,0,.46);
+  backdrop-filter:blur(6px);
+}
+.modal.open{display:flex}
+.sheet{
+  width:min(760px,100%);
+  background:rgba(24,24,24,.98);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  transform:translateY(-22px);
+  opacity:0;
+  transition:transform .2s ease, opacity .2s ease;
+}
+.modal.open .sheet{
+  transform:translateY(0);
+  opacity:1;
+}
+.sheetHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.sheetTitle{font-weight:700}
+.sheetBody{padding:14px}
+.modalTop{
+  align-items:flex-start;
+}
+.modalTop .sheet{
+  margin-top:0;
+}
+.modalTop.open .sheet{
+  transform:translateY(0);
+}
+@media (max-width:760px){
+  .grid{padding:12px}
+  .coverBox{min-height:250px}
+  .header{padding:12px}
+  .headerRight{display:none}
+  .verticalArea{height:auto; overflow-x:auto; padding-bottom:8px}
+  .vTrack{height:190px}
+  .vSlider{width:180px}
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay"></div>
+
+<aside class="sidebar" id="sidebar" aria-hidden="true">
+  <div class="sideHead">
+    <div class="sideTitle">Music Player</div>
+    <button class="menuBtn" id="btnCloseMenu">×</button>
+  </div>
+  <div class="menuList">
+    <button class="menuItem" data-open="queueModal">再生キュー<span>キューを見たり並び替えたりする</span></button>
+    <button class="menuItem" data-open="eqModal">イコライザー<span>5バンドとプリセットを調整する</span></button>
+    <button class="menuItem" data-open="timerModal">スリープタイマー<span>○時○分 / ○分後で停止</span></button>
+    <button class="menuItem" data-open="statsModal">ランキング<span>再生回数や最近再生を見る</span></button>
+    <button class="menuItem" data-open="settingsSection">その他設定<span>シャッフルやリピートを切り替える</span></button>
+  </div>
+  <div class="sideBody">
+    <section id="settingsSection" class="panelSection active">
+      <div class="sectionCard">
+        <div class="sectionTitle">その他設定</div>
+        <div class="controls" style="margin:0 0 10px">
+          <button class="btn small" id="btnSideShuffle">シャッフル</button>
+          <button class="btn small" id="btnSideRepeat">リピート</button>
+          <button class="btn small" id="btnFavOnlySide">お気に入りのみ</button>
+        </div>
+        <div class="notice">
+          バックグラウンド再生とロック画面操作は Media Session で対応。<br>
+          PWAは manifest.json / sw.js / icon-192.png / icon-512.png を同じフォルダに置いて使う。
+        </div>
+      </div>
+    </section>
+  </div>
+</aside>
+
+<div class="modal modalTop" id="queueModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheetHeader">
+      <div class="sheetTitle">再生キュー</div>
+      <button class="btn small" data-close-modal>閉じる</button>
+    </div>
+    <div class="sheetBody">
+      <div class="notice">曲を追加した順に並ぶ。ここでドラッグして順番変更もできる。</div>
+      <div style="height:10px"></div>
+      <div class="queueList" id="queueList"></div>
+      <div class="controls" style="margin:12px 0 0">
+        <button class="btn small" id="btnQueueClear">全消去</button>
+        <button class="btn small ghost" id="btnQueueShuffle">キューを並び替え</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="eqModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheetHeader">
+      <div class="sheetTitle">イコライザー</div>
+      <button class="btn small" data-close-modal>閉じる</button>
+    </div>
+    <div class="sheetBody">
+      <div class="sectionCard">
+        <div class="sectionTitle">プリセット</div>
+        <div class="eqPresetRow" id="eqPresetRow"></div>
+      </div>
+      <div class="sectionCard">
+        <div class="sectionTitle">5バンド調整</div>
+        <div class="verticalArea" id="eqBands"></div>
+      </div>
+      <div class="sectionCard">
+        <div class="sectionTitle">カスタム保存</div>
+        <div class="field" style="margin:0">
+          <input type="text" id="eqName" placeholder="My EQ">
+        </div>
+        <div class="controls" style="margin:10px 0 0">
+          <button class="btn small" id="btnEqSave">この設定を保存</button>
+          <button class="btn small ghost" id="btnEqReset">リセット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="timerModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheetHeader">
+      <div class="sheetTitle">スリープタイマー</div>
+      <button class="btn small" data-close-modal>閉じる</button>
+    </div>
+    <div class="sheetBody">
+      <div class="sectionCard">
+        <div class="sectionTitle">時刻 / 分で設定</div>
+        <div class="timerBox">
+          <div class="controls" style="margin:0">
+            <button class="btn small" data-timer="off">OFF</button>
+            <button class="btn small" data-timer="15">15分後</button>
+            <button class="btn small" data-timer="30">30分後</button>
+            <button class="btn small" data-timer="60">60分後</button>
+          </div>
+          <div class="field">
+            <label>○時○分に停止</label>
+            <input type="time" id="timerTime">
+          </div>
+          <div class="controls" style="margin:0">
+            <button class="btn small" id="btnTimerAt">この時刻で設定</button>
+          </div>
+          <div class="timerStatus" id="timerStatus">タイマーはOFF</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="statsModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="sheetHeader">
+      <div class="sheetTitle">ランキング</div>
+      <button class="btn small" data-close-modal>閉じる</button>
+    </div>
+    <div class="sheetBody">
+      <div class="sectionCard">
+        <div class="sectionTitle">統計</div>
+        <div class="statsKV">
+          <div class="kv"><div class="k">総再生回数</div><div class="v" id="statPlays">0</div></div>
+          <div class="kv"><div class="k">総再生時間</div><div class="v" id="statTime">0:00</div></div>
+          <div class="kv"><div class="k">曲数</div><div class="v" id="statSongs">0</div></div>
+          <div class="kv"><div class="k">お気に入り</div><div class="v" id="statFavs">0</div></div>
+        </div>
+      </div>
+      <div class="sectionCard">
+        <div class="sectionTitle">TOP10</div>
+        <div class="statsList" id="topList"></div>
+      </div>
+      <div class="sectionCard">
+        <div class="sectionTitle">最近再生</div>
+        <div class="statsList" id="recentList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="shell">
+    <header class="header">
+      <div class="brand">
+        <button class="menuBtn" id="btnMenu">☰</button>
+        <div class="brandText">
+          <h1 id="nowTitle">未再生</h1>
+          <div id="nowSub">フォルダを選ぶと曲一覧が出る</div>
+        </div>
+      </div>
+      <div class="headerRight">
+        <div class="pill" id="pillSongs">0曲</div>
+        <div class="pill" id="pillFavs">0お気に入り</div>
+        <div class="pill" id="pillQueue">0キュー</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="coverBox" id="coverBox">
+        <img id="nowCover" alt="">
+        <div class="coverFallback" id="coverFallback">再生中の曲の表示</div>
+      </div>
+
+      <div class="playerPanel">
+        <div class="field">
+          <label>音声ファイル（フォルダ選択でも複数選択でもOK）</label>
+          <input type="file" id="folder" webkitdirectory multiple accept=".mp3,.m4a,.wav,.ogg,.flac,.aac,.webm,audio/*">
+        </div>
+
+        <div class="field">
+          <label>検索</label>
+          <input type="text" id="search" placeholder="曲名で検索">
+        </div>
+
+        <div class="controls">
+          <button class="btn strong" id="btnShuffle">シャッフル</button>
+          <button class="btn strong" id="btnRepeat">リピート</button>
+          <button class="btn strong" id="btnFavOnly">お気に入りのみ</button>
+          <button class="btn" id="btnPrev">前へ</button>
+          <button class="btn" id="btnPlay">再生 / 停止</button>
+          <button class="btn" id="btnNext">次へ</button>
+          <button class="btn warn" id="btnFav">☆</button>
+        </div>
+
+        <div class="progressWrap">
+          <input type="range" id="progress" min="0" max="100" value="0">
+          <div class="timeLine">
+            <span id="timeNow">0:00</span>
+            <span id="timeAll">0:00</span>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <div class="meter">
+            <span>音量</span>
+            <span id="volText">100%</span>
+          </div>
+          <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+        </div>
+
+        <canvas id="wave" class="wave" width="900" height="112"></canvas>
+
+        <div class="notice">
+          シングルタップで再生、ダブルタップでキュー追加。<br>
+          星は黄色でお気に入り。左の☰メニューからキュー・EQ・タイマー・統計に入れる。
+        </div>
+
+        <div class="songHead">
+          <div>
+            <div style="font-weight:700; margin-bottom:4px">曲一覧</div>
+            <div class="notice" id="listHint">まだ読み込み前</div>
+          </div>
+          <div class="badge" id="shuffleState">シャッフル: ON</div>
+        </div>
+
+        <div id="list" class="songList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="miniPlayer">
+  <div class="miniInner">
+    <div class="miniTop">
+      <div class="miniNow">
+        <div id="miniTitle">停止中</div>
+        <div id="miniSub">まだ再生していない</div>
+      </div>
+      <div class="miniBtns">
+        <button class="btn small" id="miniPrev">前へ</button>
+        <button class="btn small" id="miniPlay">再生 / 停止</button>
+        <button class="btn small" id="miniNext">次へ</button>
+      </div>
+    </div>
+    <input type="range" id="miniProgress" min="0" max="100" value="0">
+    <div class="timeLine">
+      <span id="miniTimeNow">0:00</span>
+      <span id="miniTimeAll">0:00</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const STORAGE = {
+    favorites: "mp_favorites_v6",
+    order: "mp_order_v6",
+    queue: "mp_queue_v6",
+    playCounts: "mp_playCounts_v6",
+    listened: "mp_listened_v6",
+    recent: "mp_recent_v6",
+    eqState: "mp_eqState_v6",
+    eqCustom: "mp_eqCustom_v6",
+    timer: "mp_timer_v6",
+    volume: "mp_volume_v6",
+    shuffle: "mp_shuffle_v6",
+    repeat: "mp_repeat_v6",
+    favoriteOnly: "mp_favoriteOnly_v6",
+    search: "mp_search_v6",
+    lastSong: "mp_lastSong_v6",
+    lastSongPos: "mp_lastSongPos_v6",
+    backStack: "mp_backStack_v6"
+  };
+
+  const EQ_BANDS = [
+    { label: "60Hz",   type: "lowshelf",  freq: 60 },
+    { label: "250Hz",  type: "peaking",   freq: 250 },
+    { label: "1kHz",   type: "peaking",   freq: 1000 },
+    { label: "4kHz",   type: "peaking",   freq: 4000 },
+    { label: "12kHz",  type: "highshelf", freq: 12000 },
+  ];
+
+  const EQ_PRESETS = {
+    Normal: [0, 0, 0, 0, 0],
+    BassBoost: [7, 4, 0, -1, -2],
+    Vocal: [-2, 1, 4, 2, 0],
+    Rock: [4, 2, 0, 2, 4],
+    TrebleBoost: [-3, -1, 0, 3, 6],
+  };
+
+  const audio = new Audio();
+  audio.preload = "auto";
+
+  let audioCtx = null;
+  let sourceNode = null;
+  let filters = [];
+  let analyser = null;
+  let analyserData = null;
+  let analyserSmooth = null;
+  let audioGraphReady = false;
+
+  const state = {
+    playlist: [],
+    currentSong: null,
+    favorites: loadJSON(STORAGE.favorites, []),
+    order: loadJSON(STORAGE.order, []),
+    queue: loadJSON(STORAGE.queue, []),
+    playCounts: loadJSON(STORAGE.playCounts, {}),
+    listened: loadJSON(STORAGE.listened, {}),
+    recent: loadJSON(STORAGE.recent, []),
+    eqState: loadJSON(STORAGE.eqState, { preset: "Normal", gains: [0,0,0,0,0] }),
+    eqCustom: loadJSON(STORAGE.eqCustom, {}),
+    timer: loadJSON(STORAGE.timer, { mode: "off", target: 0, label: "OFF", stopAfterCurrent: false }),
+    shuffle: loadBool(STORAGE.shuffle, true),
+    repeat: loadBool(STORAGE.repeat, false),
+    favoriteOnly: loadBool(STORAGE.favoriteOnly, false),
+    search: loadStr(STORAGE.search, ""),
+    backStack: loadJSON(STORAGE.backStack, []),
+    pendingSeek: null,
+    lastTick: 0,
+    songTapId: null,
+    songTapTs: 0,
+    timerExpired: false,
+    menuOpen: false,
+    activePanel: "settingsSection",
+  };
+
+  const el = {
+    folder: document.getElementById("folder"),
+    search: document.getElementById("search"),
+    list: document.getElementById("list"),
+    listHint: document.getElementById("listHint"),
+    nowTitle: document.getElementById("nowTitle"),
+    nowSub: document.getElementById("nowSub"),
+    miniTitle: document.getElementById("miniTitle"),
+    miniSub: document.getElementById("miniSub"),
+    nowCover: document.getElementById("nowCover"),
+    coverFallback: document.getElementById("coverFallback"),
+    coverBox: document.getElementById("coverBox"),
+    songCount: document.getElementById("pillSongs"),
+    favCount: document.getElementById("pillFavs"),
+    queueCount: document.getElementById("pillQueue"),
+    statsSongs: document.getElementById("statSongs"),
+    statsFavs: document.getElementById("statFavs"),
+    statsPlays: document.getElementById("statPlays"),
+    statsTime: document.getElementById("statTime"),
+    topList: document.getElementById("topList"),
+    recentList: document.getElementById("recentList"),
+    queueList: document.getElementById("queueList"),
+    eqPresetRow: document.getElementById("eqPresetRow"),
+    eqBands: document.getElementById("eqBands"),
+    eqName: document.getElementById("eqName"),
+    timerStatus: document.getElementById("timerStatus"),
+    timerTime: document.getElementById("timerTime"),
+    btnTimerAt: document.getElementById("btnTimerAt"),
+    btnMenu: document.getElementById("btnMenu"),
+    btnCloseMenu: document.getElementById("btnCloseMenu"),
+    overlay: document.getElementById("overlay"),
+    sidebar: document.getElementById("sidebar"),
+    btnShuffle: document.getElementById("btnShuffle"),
+    btnRepeat: document.getElementById("btnRepeat"),
+    btnFavOnly: document.getElementById("btnFavOnly"),
+    btnPrev: document.getElementById("btnPrev"),
+    btnPlay: document.getElementById("btnPlay"),
+    btnNext: document.getElementById("btnNext"),
+    btnFav: document.getElementById("btnFav"),
+    miniPrev: document.getElementById("miniPrev"),
+    miniPlay: document.getElementById("miniPlay"),
+    miniNext: document.getElementById("miniNext"),
+    volume: document.getElementById("volume"),
+    volText: document.getElementById("volText"),
+    progress: document.getElementById("progress"),
+    miniProgress: document.getElementById("miniProgress"),
+    timeNow: document.getElementById("timeNow"),
+    timeAll: document.getElementById("timeAll"),
+    miniTimeNow: document.getElementById("miniTimeNow"),
+    miniTimeAll: document.getElementById("miniTimeAll"),
+    wave: document.getElementById("wave"),
+    shuffleState: document.getElementById("shuffleState"),
+    btnQueueClear: document.getElementById("btnQueueClear"),
+    btnQueueShuffle: document.getElementById("btnQueueShuffle"),
+    btnEqSave: document.getElementById("btnEqSave"),
+    btnEqReset: document.getElementById("btnEqReset"),
+    btnSideShuffle: document.getElementById("btnSideShuffle"),
+    btnSideRepeat: document.getElementById("btnSideRepeat"),
+    btnFavOnlySide: document.getElementById("btnFavOnlySide"),
+    toast: document.getElementById("toast"),
+    queueModal: document.getElementById("queueModal"),
+    eqModal: document.getElementById("eqModal"),
+    timerModal: document.getElementById("timerModal"),
+    statsModal: document.getElementById("statsModal"),
+    statSongs: document.getElementById("statSongs"),
+    statFavs: document.getElementById("statFavs"),
+    statPlays: document.getElementById("statPlays"),
+    statTime: document.getElementById("statTime"),
+  };
+
+  el.search.value = state.search;
+  el.volume.value = loadNum(STORAGE.volume, 1);
+  audio.volume = Number(el.volume.value);
+
+  function loadJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  function loadBool(key, fallback) {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : raw === "true";
+  }
+  function loadNum(key, fallback) {
+    const raw = localStorage.getItem(key);
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  function loadStr(key, fallback) {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : raw;
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE.favorites, JSON.stringify(state.favorites));
+    localStorage.setItem(STORAGE.order, JSON.stringify(state.order));
+    localStorage.setItem(STORAGE.queue, JSON.stringify(state.queue));
+    localStorage.setItem(STORAGE.playCounts, JSON.stringify(state.playCounts));
+    localStorage.setItem(STORAGE.listened, JSON.stringify(state.listened));
+    localStorage.setItem(STORAGE.recent, JSON.stringify(state.recent.slice(0, 30)));
+    localStorage.setItem(STORAGE.eqState, JSON.stringify(state.eqState));
+    localStorage.setItem(STORAGE.eqCustom, JSON.stringify(state.eqCustom));
+    localStorage.setItem(STORAGE.timer, JSON.stringify(state.timer));
+    localStorage.setItem(STORAGE.volume, String(audio.volume));
+    localStorage.setItem(STORAGE.shuffle, String(state.shuffle));
+    localStorage.setItem(STORAGE.repeat, String(state.repeat));
+    localStorage.setItem(STORAGE.favoriteOnly, String(state.favoriteOnly));
+    localStorage.setItem(STORAGE.search, state.search);
+    localStorage.setItem(STORAGE.lastSong, state.currentSong?.name || "");
+    localStorage.setItem(STORAGE.lastSongPos, String(audio.currentTime || 0));
+    localStorage.setItem(STORAGE.backStack, JSON.stringify(state.backStack.slice(-120)));
+  }
+
+  function escapeText(s) {
+    return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
+  }
+
+  function fmtTime(sec) {
+    if (!Number.isFinite(sec) || sec < 0) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+  function fmtLong(sec) {
+    sec = Math.max(0, Math.floor(sec || 0));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : fmtTime(sec);
+  }
+  function toast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => el.toast.classList.remove("show"), 1200);
+  }
+  function naturalSort(a, b) {
+    return a.name.localeCompare(b.name, "ja", { numeric: true, sensitivity: "base" });
+  }
+  function baseName(name) { return name.replace(/\.[^/.]+$/, ""); }
+  function extOf(name) {
+    const i = name.lastIndexOf(".");
+    return i >= 0 ? name.slice(i + 1).toLowerCase() : "";
+  }
+  function isAudio(file) {
+    return ["mp3","m4a","wav","ogg","flac","aac","webm"].includes(extOf(file.name));
+  }
+  function isImage(file) {
+    return ["png","jpg","jpeg","webp","gif"].includes(extOf(file.name));
+  }
+  function shuffle(arr) {
+    const out = arr.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  function ensureGraph() {
+    if (audioGraphReady) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      sourceNode = audioCtx.createMediaElementSource(audio);
+      filters = EQ_BANDS.map((band, i) => {
+        const f = audioCtx.createBiquadFilter();
+        f.type = band.type;
+        f.frequency.value = band.freq;
+        f.Q.value = 1.0;
+        f.gain.value = Number(state.eqState.gains?.[i] || 0);
+        return f;
+      });
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 128;
+      analyserData = new Uint8Array(analyser.frequencyBinCount);
+      analyserSmooth = new Array(analyser.frequencyBinCount).fill(0);
+
+      sourceNode.connect(filters[0]);
+      for (let i = 0; i < filters.length - 1; i++) filters[i].connect(filters[i + 1]);
+      filters[filters.length - 1].connect(analyser);
+      analyser.connect(audioCtx.destination);
+      audioGraphReady = true;
+    } catch (e) {
+      console.warn(e);
+      audioGraphReady = false;
+    }
+  }
+  async function resumeAudioContext() {
+    ensureGraph();
+    if (audioCtx && audioCtx.state === "suspended") {
+      try { await audioCtx.resume(); } catch {}
+    }
+  }
+  function applyEq() {
+    if (!filters.length) return;
+    EQ_BANDS.forEach((b, i) => {
+      const g = Number(state.eqState.gains?.[i] || 0);
+      filters[i].gain.value = g;
+      const slider = document.querySelector(`input[data-eq="${i}"]`);
+      const val = document.querySelector(`[data-eqvalue="${i}"]`);
+      if (slider) slider.value = String(g);
+      if (val) val.textContent = `${g} dB`;
+    });
+  }
+  function animateEqTo(target) {
+    state.eqState.gains = target.slice();
+    state.eqState.preset = "Custom";
+    const start = filters.map(f => Number(f.gain.value || 0));
+    const t0 = performance.now();
+    const dur = 180;
+    const step = now => {
+      const p = Math.min(1, (now - t0) / dur);
+      for (let i = 0; i < filters.length; i++) {
+        const v = start[i] + (target[i] - start[i]) * p;
+        filters[i].gain.value = v;
+        const slider = document.querySelector(`input[data-eq="${i}"]`);
+        const val = document.querySelector(`[data-eqvalue="${i}"]`);
+        if (slider) slider.value = String(Math.round(v));
+        if (val) val.textContent = `${Math.round(v)} dB`;
+      }
+      if (p < 1) requestAnimationFrame(step);
+      else {
+        saveState();
+        updateEqPresetButtons();
+      }
+    };
+    requestAnimationFrame(step);
+  }
+  function setEqPreset(name) {
+    const gains = EQ_PRESETS[name] ? EQ_PRESETS[name].slice() : [0,0,0,0,0];
+    state.eqState.preset = name;
+    animateEqTo(gains);
+    toast(`EQ: ${name}`);
+  }
+  function setEqGain(i, val) {
+    state.eqState.preset = "Custom";
+    state.eqState.gains[i] = Number(val);
+    if (filters[i]) filters[i].gain.value = Number(val);
+    const txt = document.querySelector(`[data-eqvalue="${i}"]`);
+    if (txt) txt.textContent = `${Number(val)} dB`;
+    updateEqPresetButtons();
+    saveState();
+  }
+  function updateEqPresetButtons() {
+    document.querySelectorAll("[data-eqpreset]").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.eqpreset === state.eqState.preset);
+    });
+  }
+
+  function getVisibleSongs() {
+    let list = state.playlist.slice();
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      list = list.filter(s => s.name.toLowerCase().includes(q));
+    }
+    if (state.favoriteOnly) list = list.filter(s => state.favorites.includes(s.name));
+    const orderMap = new Map(state.order.map((n, i) => [n, i]));
+    list.sort((a, b) => {
+      const ai = orderMap.has(a.name) ? orderMap.get(a.name) : 999999;
+      const bi = orderMap.has(b.name) ? orderMap.get(b.name) : 999999;
+      if (ai !== bi) return ai - bi;
+      return naturalSort(a, b);
+    });
+    return list;
+  }
+  function getSongByName(name) {
+    return state.playlist.find(s => s.name === name) || null;
+  }
+
+  function commitOrderFromPlaylist() {
+    state.order = state.playlist.map(s => s.name);
+    saveState();
+  }
+
+  function loadFiles(fileList) {
+    const files = Array.from(fileList || []);
+    const audioByBase = new Map();
+    const coverByBase = new Map();
+
+    files.forEach(f => {
+      const bn = baseName(f.name);
+      if (isAudio(f)) {
+        if (!audioByBase.has(bn)) audioByBase.set(bn, { name: bn, url: "", coverUrl: "", fileName: f.name });
+        audioByBase.get(bn).url = URL.createObjectURL(f);
+      } else if (isImage(f)) {
+        coverByBase.set(bn, URL.createObjectURL(f));
+      }
+    });
+
+    state.playlist = Array.from(audioByBase.values()).filter(s => s.url).map(s => {
+      if (coverByBase.has(s.name)) s.coverUrl = coverByBase.get(s.name);
+      return s;
+    }).sort(naturalSort);
+
+    if (!state.order.length) commitOrderFromPlaylist();
+    else {
+      const orderMap = new Map(state.order.map((n, i) => [n, i]));
+      state.playlist.sort((a, b) => {
+        const ai = orderMap.has(a.name) ? orderMap.get(a.name) : 999999;
+        const bi = orderMap.has(b.name) ? orderMap.get(b.name) : 999999;
+        if (ai !== bi) return ai - bi;
+        return naturalSort(a, b);
+      });
+    }
+
+    saveState();
+    renderAll();
+
+    const last = loadStr(STORAGE.lastSong, "");
+    if (last) {
+      const s = getSongByName(last);
+      if (s) {
+        state.currentSong = s;
+        audio.src = s.url;
+        state.pendingSeek = loadNum(STORAGE.lastSongPos, 0);
+        updateNowPlayingUI(s);
+      }
+    }
+    toast("読み込み完了");
+  }
+
+  function updateHeader() {
+    const visible = getVisibleSongs();
+    el.songCount.textContent = `${visible.length}曲`;
+    el.favCount.textContent = `${state.favorites.length}お気に入り`;
+    el.queueCount.textContent = `${state.queue.length}キュー`;
+    el.listHint.textContent = visible.length
+      ? (state.favoriteOnly ? "お気に入りだけ表示中" : state.search ? `検索結果 ${visible.length}曲` : "タップで再生、ダブルタップでキュー追加")
+      : (state.playlist.length ? "該当する曲がないよ" : "まだ読み込み前");
+    el.shuffleState.textContent = `シャッフル: ${state.shuffle ? "ON" : "OFF"}`;
+    el.btnShuffle.textContent = state.shuffle ? "シャッフル ON" : "シャッフル OFF";
+    el.btnRepeat.textContent = state.repeat ? "リピート ON" : "リピート OFF";
+    el.btnFavOnly.textContent = state.favoriteOnly ? "お気に入りのみ ON" : "お気に入りのみ";
+    el.btnSideShuffle.textContent = state.shuffle ? "シャッフル ON" : "シャッフル OFF";
+    el.btnSideRepeat.textContent = state.repeat ? "リピート ON" : "リピート OFF";
+    el.btnFavOnlySide.textContent = state.favoriteOnly ? "お気に入りのみ ON" : "お気に入りのみ";
+  }
+
+  function updateNowPlayingUI(song) {
+    if (song) {
+      el.nowTitle.textContent = song.name;
+      el.miniTitle.textContent = song.name;
+      el.nowSub.textContent = state.favorites.includes(song.name) ? "お気に入り" : "再生中";
+      el.miniSub.textContent = state.favorites.includes(song.name) ? "お気に入り" : "再生中";
+      el.btnFav.textContent = state.favorites.includes(song.name) ? "★" : "☆";
+      el.btnFav.classList.toggle("active", state.favorites.includes(song.name));
+      if (song.coverUrl) {
+        el.nowCover.src = song.coverUrl;
+        el.nowCover.style.display = "block";
+        el.coverFallback.style.display = "none";
+      } else {
+        el.nowCover.removeAttribute("src");
+        el.nowCover.style.display = "none";
+        el.coverFallback.style.display = "flex";
+      }
+    } else {
+      el.nowTitle.textContent = "未再生";
+      el.miniTitle.textContent = "停止中";
+      el.nowSub.textContent = "フォルダを選ぶと曲一覧が出る";
+      el.miniSub.textContent = "まだ再生していない";
+      el.btnFav.textContent = "☆";
+      el.btnFav.classList.remove("active");
+      el.nowCover.removeAttribute("src");
+      el.nowCover.style.display = "none";
+      el.coverFallback.style.display = "flex";
+    }
+    document.querySelectorAll(".song, .queueItem").forEach(node => {
+      node.classList.toggle("current", node.dataset.name === song?.name);
+      node.classList.toggle("active", node.dataset.name === song?.name);
+    });
+  }
+
+  function updateProgressUI() {
+    const dur = audio.duration || 0;
+    const cur = audio.currentTime || 0;
+    const pct = dur ? (cur / dur) * 100 : 0;
+    el.progress.value = String(pct);
+    el.miniProgress.value = String(pct);
+    el.timeNow.textContent = fmtTime(cur);
+    el.timeAll.textContent = fmtTime(dur);
+    el.miniTimeNow.textContent = fmtTime(cur);
+    el.miniTimeAll.textContent = fmtTime(dur);
+  }
+
+  function setRecent(name) {
+    state.recent = state.recent.filter(n => n !== name);
+    state.recent.unshift(name);
+    state.recent = state.recent.slice(0, 20);
+  }
+  function addPlayStats(song, delta) {
+    if (!song || delta <= 0) return;
+    state.listened[song.name] = (state.listened[song.name] || 0) + delta;
+  }
+  function incrementPlayCount(name) {
+    state.playCounts[name] = (state.playCounts[name] || 0) + 1;
+    setRecent(name);
+    saveState();
+  }
+
+  function renderEq() {
+    el.eqPresetRow.innerHTML = "";
+    Object.keys(EQ_PRESETS).forEach(name => {
+      const btn = document.createElement("button");
+      btn.className = "btn small" + (state.eqState.preset === name ? " active" : "");
+      btn.textContent = name;
+      btn.dataset.eqpreset = name;
+      btn.addEventListener("click", () => setEqPreset(name));
+      el.eqPresetRow.appendChild(btn);
+    });
+
+    el.eqBands.innerHTML = "";
+    EQ_BANDS.forEach((band, i) => {
+      const box = document.createElement("div");
+      box.className = "vBand";
+      box.innerHTML = `
+        <div class="vLabel">${band.label}</div>
+        <div class="vTrack">
+          <input class="vSlider" type="range" min="-12" max="12" step="1" value="${Number(state.eqState.gains?.[i] || 0)}" data-eq="${i}">
+        </div>
+        <div class="vValue" data-eqvalue="${i}">${Number(state.eqState.gains?.[i] || 0)} dB</div>
+      `;
+      box.querySelector("input").addEventListener("input", e => setEqGain(i, e.target.value));
+      el.eqBands.appendChild(box);
+    });
+    updateEqPresetButtons();
+  }
+
+  function saveCustomEq() {
+    const name = (el.eqName.value || "").trim();
+    if (!name) return toast("名前を入れてね");
+    state.eqCustom[name] = state.eqState.gains.slice();
+    saveState();
+    toast(`"${name}" を保存`);
+  }
+  function resetEq() {
+    setEqPreset("Normal");
+    el.eqName.value = "";
+  }
+
+  function renderQueue() {
+    el.queueList.innerHTML = "";
+    if (!state.queue.length) {
+      const empty = document.createElement("div");
+      empty.className = "notice";
+      empty.textContent = "キューは空だよ";
+      el.queueList.appendChild(empty);
+      return;
+    }
+    state.queue.forEach((name, idx) => {
+      const song = getSongByName(name) || { name };
+      const item = document.createElement("div");
+      item.className = "queueItem" + (state.currentSong?.name === name ? " current" : "");
+      item.dataset.name = name;
+      item.innerHTML = `
+        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
+        <div class="qTitle">${escapeText(song.name)}</div>
+        <button class="qBtn" data-action="play">再生</button>
+        <button class="qBtn" data-action="remove">✕</button>
+      `;
+      item.querySelector('[data-action="play"]').addEventListener("click", () => playSongByName(name, { pushHistory: true }));
+      item.querySelector('[data-action="remove"]').addEventListener("click", () => removeFromQueue(idx));
+      el.queueList.appendChild(item);
+    });
+    attachSortable(el.queueList, order => {
+      state.queue = order;
+      saveState();
+      renderQueue();
+      updateHeader();
+    });
+  }
+
+  function addToQueue(name) {
+    if (!name) return;
+    state.queue.push(name);
+    saveState();
+    renderQueue();
+    updateHeader();
+    toast("キューに追加");
+  }
+  function removeFromQueue(index) {
+    state.queue.splice(index, 1);
+    saveState();
+    renderQueue();
+    updateHeader();
+    toast("キューから削除");
+  }
+  function clearQueue() {
+    state.queue = [];
+    saveState();
+    renderQueue();
+    updateHeader();
+    toast("キューを消去");
+  }
+  function shuffleQueueList() {
+    state.queue = shuffle(state.queue);
+    saveState();
+    renderQueue();
+    toast("キューを並び替え");
+  }
+
+  function renderSongList() {
+    const visible = getVisibleSongs();
+    el.list.innerHTML = "";
+    visible.forEach(song => {
+      const row = document.createElement("div");
+      row.className = "song";
+      row.dataset.name = song.name;
+      row.innerHTML = `
+        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
+        <div class="songMain">
+          <div class="songName">${escapeText(song.name)}</div>
+          <div class="songMeta">${state.favorites.includes(song.name) ? "お気に入り ・ " : ""}再生回数 ${state.playCounts[song.name] || 0}回</div>
+        </div>
+        <div class="songRight">
+          <button class="queueBtn" title="キューに追加">＋</button>
+          <button class="starBtn${state.favorites.includes(song.name) ? " active" : ""}" title="お気に入り">${state.favorites.includes(song.name) ? "★" : "☆"}</button>
+          <div class="badge">${song.name === state.currentSong?.name ? "再生中" : "タップで再生"}</div>
+        </div>
+      `;
+      row.querySelector(".queueBtn").addEventListener("click", e => { e.stopPropagation(); addToQueue(song.name); });
+      row.querySelector(".starBtn").addEventListener("click", e => { e.stopPropagation(); toggleFavorite(song.name); });
+      row.addEventListener("click", () => handleSongTap(song));
+      row.addEventListener("dblclick", () => addToQueue(song.name));
+      el.list.appendChild(row);
+    });
+    attachSortable(el.list, order => {
+      const visibleNames = order;
+      const remaining = state.playlist.map(s => s.name).filter(n => !visibleNames.includes(n));
+      state.order = [...visibleNames, ...remaining];
+      saveState();
+      renderSongList();
+      updateHeader();
+    });
+    updateNowPlayingUI(state.currentSong);
+  }
+
+  function toggleFavorite(name) {
+    const i = state.favorites.indexOf(name);
+    if (i >= 0) state.favorites.splice(i, 1);
+    else state.favorites.push(name);
+    saveState();
+    renderSongList();
+    renderQueue();
+    updateHeader();
+    if (state.currentSong?.name === name) updateNowPlayingUI(state.currentSong);
+    toast(i >= 0 ? "お気に入り解除" : "お気に入り追加");
+  }
+
+  function handleSongTap(song) {
+    const now = Date.now();
+    const same = state.songTapId === song.name && now - state.songTapTs < 260;
+    state.songTapId = song.name;
+    state.songTapTs = now;
+    clearTimeout(state.songTapTimer);
+    if (same) {
+      addToQueue(song.name);
+      state.songTapId = null;
+      return;
+    }
+    state.songTapTimer = setTimeout(() => {
+      state.songTapId = null;
+      playSong(song, { pushHistory: true });
+    }, 240);
+  }
+
+  function playSong(song, opts = {}) {
+    if (!song || !song.url) return;
+    ensureGraph();
+    const same = state.currentSong && state.currentSong.name === song.name && audio.src === song.url;
+
+    if (opts.pushHistory && state.currentSong && state.currentSong.name && state.currentSong.name !== song.name) {
+      state.backStack.push(state.currentSong.name);
+      state.backStack = state.backStack.slice(-120);
+    }
+
+    state.currentSong = song;
+
+    if (!same) {
+      audio.src = song.url;
+      state.pendingSeek = opts.startFromSavedPosition ? (loadNum(STORAGE.lastSongPos, 0) || 0) : 0;
+      audio.load();
+    }
+
+    updateNowPlayingUI(song);
+    setMediaSession();
+    saveState();
+    incrementPlayCount(song.name);
+    updateStats();
+    prewarmNext();
+    resumeAudioContext();
+    audio.play().catch(() => {});
+  }
+
+  function playSongByName(name, opts = {}) {
+    const song = getSongByName(name);
+    if (song) playSong(song, opts);
+  }
+
+  function playPause() {
+    if (!state.currentSong && state.playlist.length) {
+      playSong(getVisibleSongs()[0], { pushHistory: true });
+      return;
+    }
+    if (audio.paused) audio.play().catch(() => {});
+    else audio.pause();
+  }
+
+  function nextLibrarySong() {
+    const visible = getVisibleSongs();
+    if (!visible.length) return null;
+
+    if (state.queue.length) {
+      const nextName = state.queue.shift();
+      saveState();
+      renderQueue();
+      updateHeader();
+      return getSongByName(nextName) || visible[0];
+    }
+
+    if (state.shuffle) {
+      const pool = visible.filter(s => s.name !== state.currentSong?.name);
+      if (!pool.length) return visible[0];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    const idx = visible.findIndex(s => s.name === state.currentSong?.name);
+    const nextIdx = idx >= 0 ? idx + 1 : 0;
+    if (nextIdx >= visible.length) {
+      return state.repeat ? visible[0] : null;
+    }
+    return visible[nextIdx];
+  }
+
+  function nextMusic() {
+    const next = nextLibrarySong();
+    if (next) playSong(next, { pushHistory: true });
+    else if (state.currentSong && state.repeat) playSong(state.currentSong, { pushHistory: false });
+  }
+
+  function prevMusic() {
+    const visible = getVisibleSongs();
+    if (!visible.length) return;
+
+    let prev = null;
+    while (state.backStack.length) {
+      const name = state.backStack.pop();
+      const s = getSongByName(name);
+      if (s) { prev = s; break; }
+    }
+    if (!prev) {
+      const idx = visible.findIndex(s => s.name === state.currentSong?.name);
+      const prevIdx = idx >= 0 ? idx - 1 : visible.length - 1;
+      prev = visible[(prevIdx + visible.length) % visible.length];
+    }
+    saveState();
+    if (prev) playSong(prev, { pushHistory: false, startFromSavedPosition: true });
+  }
+
+  function prewarmNext() {
+    try {
+      const next = nextLibrarySong();
+      if (!next || !next.url) return;
+      const pre = new Audio();
+      pre.preload = "auto";
+      pre.src = next.url;
+      pre.load();
+    } catch {}
+  }
+
+  function setMediaSession() {
+    if (!("mediaSession" in navigator) || !state.currentSong) return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: state.currentSong.name,
+        artist: " ",
+        album: "Music Player"
+      });
+      navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
+      navigator.mediaSession.setActionHandler("play", () => playPause());
+      navigator.mediaSession.setActionHandler("pause", () => playPause());
+      navigator.mediaSession.setActionHandler("previoustrack", () => prevMusic());
+      navigator.mediaSession.setActionHandler("nexttrack", () => nextMusic());
+      navigator.mediaSession.setActionHandler("seekbackward", () => audio.currentTime = Math.max(0, (audio.currentTime || 0) - 10));
+      navigator.mediaSession.setActionHandler("seekforward", () => audio.currentTime = Math.min(audio.duration || Infinity, (audio.currentTime || 0) + 10));
+      navigator.mediaSession.setActionHandler("seekto", d => { if (d.seekTime != null) audio.currentTime = d.seekTime; });
+    } catch {}
+  }
+
+  function showPanel(id) {
+    state.activePanel = id;
+    document.querySelectorAll(".panelSection").forEach(p => p.classList.toggle("active", p.id === id));
+    document.querySelectorAll(".menuItem").forEach(b => b.classList.toggle("active", b.dataset.open === id));
+  }
+
+  function openMenu() {
+    state.menuOpen = true;
+    el.sidebar.classList.add("open");
+    el.overlay.classList.add("open");
+    el.sidebar.setAttribute("aria-hidden", "false");
+  }
+  function closeMenu() {
+    state.menuOpen = false;
+    el.sidebar.classList.remove("open");
+    el.overlay.classList.remove("open");
+    el.sidebar.setAttribute("aria-hidden", "true");
+  }
+
+  function openModal(modal) {
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+  function closeModal(modal) {
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  function updateTimerStatus() {
+    const t = state.timer;
+    let text = "タイマーはOFF";
+    if (t.mode === "minutes") {
+      const remain = Math.max(0, t.target - Date.now());
+      text = `あと ${fmtLong(remain / 1000)} で停止`;
+      if (state.timerExpired) text += "<br>現在の曲が終わったら停止";
+    } else if (t.mode === "after") {
+      const d = new Date(t.target);
+      const remain = Math.max(0, t.target - Date.now());
+      text = `○時○分停止: ${d.toLocaleTimeString("ja-JP", { hour:"2-digit", minute:"2-digit" })}<br>残り ${fmtLong(remain / 1000)}`;
+      if (state.timerExpired) text += "<br>現在の曲が終わったら停止";
+    }
+    el.timerStatus.innerHTML = text;
+  }
+
+  function setTimerMinutes(mins) {
+    if (!mins || mins <= 0) {
+      state.timer = { mode: "off", target: 0, label: "OFF", stopAfterCurrent: false };
+      state.timerExpired = false;
+      saveState();
+      updateTimerStatus();
+      toast("タイマーOFF");
+      return;
+    }
+    state.timer = {
+      mode: "minutes",
+      target: Date.now() + mins * 60 * 1000,
+      label: `${mins}分後`,
+      stopAfterCurrent: false
+    };
+    state.timerExpired = false;
+    saveState();
+    updateTimerStatus();
+    toast(`${mins}分後に停止`);
+  }
+  function setTimerAtTime(timeString) {
+    if (!timeString) return toast("時刻を入れてね");
+    const [h, m] = timeString.split(":").map(Number);
+    const now = new Date();
+    const target = new Date(now);
+    target.setHours(h, m, 0, 0);
+    if (target.getTime() <= now.getTime()) target.setDate(target.getDate() + 1);
+    state.timer = {
+      mode: "after",
+      target: target.getTime(),
+      label: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
+      stopAfterCurrent: false
+    };
+    state.timerExpired = false;
+    saveState();
+    updateTimerStatus();
+    toast(`停止時刻 ${state.timer.label}`);
+  }
+  function checkTimer() {
+    const t = state.timer;
+    if (t.mode === "off" || !t.target) return;
+    if (Date.now() < t.target) return;
+    if (!state.timerExpired) {
+      state.timerExpired = true;
+      t.stopAfterCurrent = true;
+      saveState();
+      updateTimerStatus();
+      toast("タイマー到達。曲が終わったら停止");
+    }
+  }
+  function handleEndedByTimer() {
+    if (state.timer.mode !== "off" && state.timerExpired && state.timer.stopAfterCurrent) {
+      audio.pause();
+      state.timer = { mode: "off", target: 0, label: "OFF", stopAfterCurrent: false };
+      state.timerExpired = false;
+      saveState();
+      updateTimerStatus();
+      toast("停止");
+      return true;
+    }
+    return false;
+  }
+
+  function updateStats() {
+    const totalPlays = Object.values(state.playCounts).reduce((a, b) => a + Number(b || 0), 0);
+    const totalListen = Object.values(state.listened).reduce((a, b) => a + Number(b || 0), 0);
+    el.statsSongs.textContent = String(state.playlist.length);
+    el.statsFavs.textContent = String(state.favorites.length);
+    el.statsPlays.textContent = String(totalPlays);
+    el.statsTime.textContent = fmtLong(totalListen);
+
+    const top = Object.entries(state.playCounts).sort((a,b) => b[1] - a[1]).slice(0,10);
+    el.topList.innerHTML = top.length ? top.map(([name, count], i) => `
+      <div class="queueItem">
+        <div class="badge">${i + 1}</div>
+        <div class="qTitle">${escapeText(name)}</div>
+        <div class="badge">${count}回</div>
+      </div>`).join("") : `<div class="notice">まだデータが少ないよ</div>`;
+
+    el.recentList.innerHTML = state.recent.length ? state.recent.slice(0,10).map((name, i) => `
+      <div class="queueItem">
+        <div class="badge">${i + 1}</div>
+        <div class="qTitle">${escapeText(name)}</div>
+        <button class="qBtn" data-play="${escapeText(name)}">再生</button>
+      </div>`).join("") : `<div class="notice">まだ最近再生はないよ</div>`;
+
+    el.recentList.querySelectorAll("[data-play]").forEach(btn => {
+      btn.addEventListener("click", () => playSongByName(btn.getAttribute("data-play"), { pushHistory: true }));
+    });
+  }
+
+  function renderQueue() {
+    el.queueList.innerHTML = "";
+    if (!state.queue.length) {
+      const empty = document.createElement("div");
+      empty.className = "notice";
+      empty.textContent = "キューは空だよ";
+      el.queueList.appendChild(empty);
+      return;
+    }
+    state.queue.forEach((name, idx) => {
+      const song = getSongByName(name) || { name };
+      const item = document.createElement("div");
+      item.className = "queueItem" + (state.currentSong?.name === name ? " current" : "");
+      item.dataset.name = name;
+      item.innerHTML = `
+        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
+        <div class="qTitle">${escapeText(song.name)}</div>
+        <button class="qBtn" data-action="play">再生</button>
+        <button class="qBtn" data-action="remove">✕</button>
+      `;
+      item.querySelector('[data-action="play"]').addEventListener("click", () => playSongByName(name, { pushHistory: true }));
+      item.querySelector('[data-action="remove"]').addEventListener("click", () => removeFromQueue(idx));
+      el.queueList.appendChild(item);
+    });
+    attachSortable(el.queueList, order => {
+      state.queue = order;
+      saveState();
+      renderQueue();
+      updateHeader();
+    });
+  }
+  function removeFromQueue(index) {
+    state.queue.splice(index, 1);
+    saveState();
+    renderQueue();
+    updateHeader();
+    toast("キューから削除");
+  }
+  function clearQueue() {
+    state.queue = [];
+    saveState();
+    renderQueue();
+    updateHeader();
+    toast("キューを消去");
+  }
+  function shuffleQueueList() {
+    state.queue = shuffle(state.queue);
+    saveState();
+    renderQueue();
+    toast("キューを並び替え");
+  }
+  function addToQueue(name) {
+    if (!name) return;
+    state.queue.push(name);
+    saveState();
+    renderQueue();
+    updateHeader();
+    toast("キューに追加");
+  }
+
+  function attachSortable(container, onCommit) {
+    const rows = [...container.querySelectorAll(".song, .queueItem")];
+    rows.forEach(row => {
+      const handle = row.querySelector(".dragHandle");
+      if (!handle) return;
+      handle.onpointerdown = ev => {
+        ev.preventDefault();
+        const startX = ev.clientX, startY = ev.clientY;
+        const pointerId = ev.pointerId;
+        let dragging = false;
+        row.setPointerCapture?.(pointerId);
+        row.classList.add("dragging");
+        const move = e => {
+          const dx = Math.abs(e.clientX - startX), dy = Math.abs(e.clientY - startY);
+          if (!dragging && (dx > 8 || dy > 8)) dragging = true;
+          if (!dragging) return;
+          const under = document.elementFromPoint(e.clientX, e.clientY);
+          const target = under && under.closest(".song, .queueItem");
+          if (!target || target === row || target.parentElement !== container) return;
+          const rect = target.getBoundingClientRect();
+          const before = e.clientY < rect.top + rect.height / 2;
+          if (before) container.insertBefore(row, target);
+          else container.insertBefore(row, target.nextSibling);
+        };
+        const up = () => {
+          row.classList.remove("dragging");
+          container.onpointermove = null;
+          container.onpointerup = null;
+          container.onpointercancel = null;
+          const order = [...container.querySelectorAll(".song, .queueItem")].map(x => x.dataset.name);
+          onCommit(order);
+        };
+        container.onpointermove = move;
+        container.onpointerup = up;
+        container.onpointercancel = up;
+      };
+    });
+  }
+
+  function renderSongList() {
+    const visible = getVisibleSongs();
+    el.list.innerHTML = "";
+    visible.forEach(song => {
+      const row = document.createElement("div");
+      row.className = "song";
+      row.dataset.name = song.name;
+      row.innerHTML = `
+        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
+        <div class="songMain">
+          <div class="songName">${escapeText(song.name)}</div>
+          <div class="songMeta">${state.favorites.includes(song.name) ? "お気に入り ・ " : ""}再生回数 ${state.playCounts[song.name] || 0}回</div>
+        </div>
+        <div class="songRight">
+          <button class="queueBtn" title="キューに追加">＋</button>
+          <button class="starBtn${state.favorites.includes(song.name) ? " active" : ""}" title="お気に入り">${state.favorites.includes(song.name) ? "★" : "☆"}</button>
+          <div class="badge">${song.name === state.currentSong?.name ? "再生中" : "タップで再生"}</div>
+        </div>
+      `;
+      row.querySelector(".queueBtn").addEventListener("click", e => { e.stopPropagation(); addToQueue(song.name); });
+      row.querySelector(".starBtn").addEventListener("click", e => { e.stopPropagation(); toggleFavorite(song.name); });
+      row.addEventListener("click", () => handleSongTap(song));
+      row.addEventListener("dblclick", () => addToQueue(song.name));
+      el.list.appendChild(row);
+    });
+    attachSortable(el.list, order => {
+      const visibleNames = order;
+      const remaining = state.playlist.map(s => s.name).filter(n => !visibleNames.includes(n));
+      state.order = [...visibleNames, ...remaining];
+      saveState();
+      renderSongList();
+      updateHeader();
+    });
+    updateNowPlayingUI(state.currentSong);
+  }
+
+  function renderEq() {
+    el.eqPresetRow.innerHTML = "";
+    Object.keys(EQ_PRESETS).forEach(name => {
+      const btn = document.createElement("button");
+      btn.className = "btn small" + (state.eqState.preset === name ? " active" : "");
+      btn.textContent = name;
+      btn.dataset.eqpreset = name;
+      btn.addEventListener("click", () => setEqPreset(name));
+      el.eqPresetRow.appendChild(btn);
+    });
+
+    el.eqBands.innerHTML = "";
+    EQ_BANDS.forEach((band, i) => {
+      const box = document.createElement("div");
+      box.className = "vBand";
+      box.innerHTML = `
+        <div class="vLabel">${band.label}</div>
+        <div class="vTrack">
+          <input class="vSlider" type="range" min="-12" max="12" step="1" value="${Number(state.eqState.gains?.[i] || 0)}" data-eq="${i}">
+        </div>
+        <div class="vValue" data-eqvalue="${i}">${Number(state.eqState.gains?.[i] || 0)} dB</div>
+      `;
+      box.querySelector("input").addEventListener("input", e => setEqGain(i, e.target.value));
+      el.eqBands.appendChild(box);
+    });
+    updateEqPresetButtons();
+  }
+
+  function renderAll() {
+    updateHeader();
+    renderSongList();
+    renderQueue();
+    renderEq();
+    updateStats();
+    updateTimerStatus();
+    updateProgressUI();
+    applyEq();
+  }
+
+  function updateTimerInput() {
+    if (state.timer.mode === "after") {
+      const d = new Date(state.timer.target);
+      el.timerTime.value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    }
+  }
+
+  function updateProgressLoop() {
+    const dur = audio.duration || 0;
+    const cur = audio.currentTime || 0;
+    const pct = dur ? (cur / dur) * 100 : 0;
+    el.progress.value = String(pct);
+    el.miniProgress.value = String(pct);
+    el.timeNow.textContent = fmtTime(cur);
+    el.timeAll.textContent = fmtTime(dur);
+    el.miniTimeNow.textContent = fmtTime(cur);
+    el.miniTimeAll.textContent = fmtTime(dur);
+  }
+
+  function renderWave() {
+    requestAnimationFrame(renderWave);
+    const w = el.wave.clientWidth || el.wave.width;
+    const h = el.wave.clientHeight || el.wave.height;
+    const ctx = el.wave.getContext("2d");
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#0f0f0f";
+    ctx.fillRect(0, 0, w, h);
+    if (!analyser || !analyserData || !analyserSmooth) {
+      ctx.fillStyle = "rgba(255,255,255,.07)";
+      ctx.fillText("再生すると波形が出る", 16, 24);
+      return;
+    }
+    analyser.getByteFrequencyData(analyserData);
+    for (let i = 0; i < analyserData.length; i++) {
+      analyserSmooth[i] += (analyserData[i] - analyserSmooth[i]) * 0.18;
+    }
+    const bars = 48;
+    const center = h / 2;
+    const barW = w / bars;
+    for (let i = 0; i < bars; i++) {
+      const idx = Math.floor(i * (analyserData.length / bars));
+      const v = (analyserSmooth[idx] || 0) / 255;
+      const barH = Math.max(2, v * (h * 0.76));
+      const x = i * barW + 2;
+      ctx.fillStyle = v > .78 ? "rgba(248,210,92,.95)" : v > .50 ? "rgba(105,227,139,.95)" : "rgba(29,185,84,.92)";
+      ctx.fillRect(x, center - barH/2, Math.max(2, barW - 4), barH);
+    }
+  }
+
+  // menu / modal bindings
+  el.btnMenu.addEventListener("click", openMenu);
+  el.btnCloseMenu.addEventListener("click", closeMenu);
+  el.overlay.addEventListener("click", () => {
+    closeMenu();
+    document.querySelectorAll(".modal.open").forEach(m => closeModal(m));
+  });
+
+  document.querySelectorAll(".menuItem").forEach(item => {
+    item.addEventListener("click", () => {
+      const open = item.dataset.open;
+      if (open === "settingsSection") {
+        showPanel("settingsSection");
+        openMenu();
+        return;
+      }
+      const modal = document.getElementById(open);
+      if (modal) {
+        openModal(modal);
+      }
+      closeMenu();
+    });
+  });
+
+  document.querySelectorAll("[data-close-modal]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const modal = btn.closest(".modal");
+      if (modal) closeModal(modal);
+    });
+  });
+
+  el.btnQueueClear.addEventListener("click", clearQueue);
+  el.btnQueueShuffle.addEventListener("click", shuffleQueueList);
+  el.btnEqSave.addEventListener("click", saveCustomEq);
+  el.btnEqReset.addEventListener("click", resetEq);
+  el.btnTimerAt.addEventListener("click", () => setTimerAtTime(el.timerTime.value));
+  document.querySelectorAll("[data-timer]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const v = btn.dataset.timer;
+      if (v === "off") setTimerMinutes(0);
+      else setTimerMinutes(Number(v));
+    });
+  });
+
+  // main control bindings
+  el.folder.addEventListener("change", e => loadFiles(e.target.files));
+  el.search.addEventListener("input", e => {
+    state.search = e.target.value.trim();
+    saveState();
+    renderSongList();
+    updateHeader();
+  });
+  el.volume.addEventListener("input", () => {
+    audio.volume = Number(el.volume.value);
+    el.volText.textContent = `${Math.round(audio.volume * 100)}%`;
+    saveState();
+  });
+  el.progress.addEventListener("input", () => { if (audio.duration) audio.currentTime = (Number(el.progress.value) / 100) * audio.duration; });
+  el.miniProgress.addEventListener("input", () => { if (audio.duration) audio.currentTime = (Number(el.miniProgress.value) / 100) * audio.duration; });
+
+  el.btnShuffle.addEventListener("click", () => { state.shuffle = !state.shuffle; saveState(); updateHeader(); });
+  el.btnRepeat.addEventListener("click", () => { state.repeat = !state.repeat; saveState(); updateHeader(); });
+  el.btnFavOnly.addEventListener("click", () => { state.favoriteOnly = !state.favoriteOnly; saveState(); renderSongList(); updateHeader(); });
+  el.btnSideShuffle.addEventListener("click", () => { state.shuffle = !state.shuffle; saveState(); updateHeader(); });
+  el.btnSideRepeat.addEventListener("click", () => { state.repeat = !state.repeat; saveState(); updateHeader(); });
+  el.btnFavOnlySide.addEventListener("click", () => { state.favoriteOnly = !state.favoriteOnly; saveState(); renderSongList(); updateHeader(); });
+
+  el.btnPrev.addEventListener("click", prevMusic);
+  el.btnPlay.addEventListener("click", playPause);
+  el.btnNext.addEventListener("click", nextMusic);
+  el.miniPrev.addEventListener("click", prevMusic);
+  el.miniPlay.addEventListener("click", playPause);
+  el.miniNext.addEventListener("click", nextMusic);
+  el.btnFav.addEventListener("click", () => { if (state.currentSong) toggleFavorite(state.currentSong.name); });
+
+  document.addEventListener("keydown", e => {
+    if (["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
+    if (e.code === "Space") { e.preventDefault(); playPause(); }
+    if (e.code === "ArrowRight") nextMusic();
+    if (e.code === "ArrowLeft") prevMusic();
+    if (e.key === "m") openMenu();
+    if (e.key === "Escape") {
+      closeMenu();
+      document.querySelectorAll(".modal.open").forEach(m => closeModal(m));
+    }
+  });
+
+  // swipe
+  let touchX = 0, touchY = 0, touchT = 0;
+  document.addEventListener("touchstart", e => {
+    const t = e.changedTouches[0];
+    touchX = t.clientX; touchY = t.clientY; touchT = Date.now();
+  }, { passive: true });
+  document.addEventListener("touchend", e => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchX;
+    const dy = t.clientY - touchY;
+    const dt = Date.now() - touchT;
+    if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 1.2 && dt < 700) {
+      dx < 0 ? nextMusic() : prevMusic();
+    }
+  }, { passive: true });
+
+  // audio events
+  audio.addEventListener("play", async () => {
+    ensureGraph();
+    await resumeAudioContext();
+    setMediaSession();
+    saveState();
+  });
+  audio.addEventListener("pause", () => {
+    if ("mediaSession" in navigator) {
+      try { navigator.mediaSession.playbackState = "paused"; } catch {}
+    }
+    saveState();
+  });
+  audio.addEventListener("loadedmetadata", () => {
+    if (state.pendingSeek != null) {
+      const safe = Math.max(0, Math.min(state.pendingSeek, Math.max(0, (audio.duration || 0) - 0.2)));
+      try { audio.currentTime = safe; } catch {}
+      state.pendingSeek = null;
+    }
+    updateProgressUI();
+  });
+  audio.addEventListener("timeupdate", () => {
+    updateProgressLoop();
+    if (state.currentSong) {
+      const now = audio.currentTime || 0;
+      const last = state.lastTick || now;
+      const delta = Math.max(0, now - last);
+      if (delta > 0 && !audio.paused) addPlayStats(state.currentSong, delta);
+      state.lastTick = now;
+    }
+    if ((audio.duration || 0) - (audio.currentTime || 0) < 12) prewarmNext();
+    checkTimer();
+  });
+  audio.addEventListener("ended", () => {
+    state.lastTick = 0;
+    if (handleEndedByTimer()) return;
+    const next = nextLibrarySong();
+    if (next) playSong(next, { pushHistory: true });
+    else if (state.repeat && state.currentSong) playSong(state.currentSong, { pushHistory: false });
+  });
+  audio.addEventListener("seeked", () => {
+    updateProgressLoop();
+    saveState();
+  });
+  audio.addEventListener("error", () => {
+    el.nowSub.textContent = "音声の読み込みでエラーが出たみたい";
+    el.miniSub.textContent = "エラー";
+  });
+
+  function nextLibrarySong() {
+    const visible = getVisibleSongs();
+    if (!visible.length) return null;
+
+    if (state.queue.length) {
+      const nextName = state.queue.shift();
+      saveState();
+      renderQueue();
+      updateHeader();
+      return getSongByName(nextName) || visible[0];
+    }
+
+    if (state.shuffle) {
+      const pool = visible.filter(s => s.name !== state.currentSong?.name);
+      if (!pool.length) return visible[0];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    const idx = visible.findIndex(s => s.name === state.currentSong?.name);
+    const nextIdx = idx >= 0 ? idx + 1 : 0;
+    if (nextIdx >= visible.length) return state.repeat ? visible[0] : null;
+    return visible[nextIdx];
+  }
+
+  function updateQueueAndTimer() {
+    updateTimerStatus();
+    updateHeader();
+  }
+
+  // preserve audio position stats
+  window.addEventListener("beforeunload", () => {
+    saveState();
+    if (state.currentSong) state.listened[state.currentSong.name] = state.listened[state.currentSong.name] || 0;
+  });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) saveState(); });
+
+  // drag / drop sort
+  function attachMenus() {
+    updateHeader();
+    renderSongList();
+    renderQueue();
+    renderEq();
+    updateStats();
+    updateTimerStatus();
+    updateProgressUI();
+    applyEq();
+    updateEqPresetButtons();
+    if (state.favorites.length || state.search || !state.shuffle || state.repeat || state.favoriteOnly) updateHeader();
+  }
+
+  // initial restore
+  el.volText.textContent = `${Math.round(audio.volume * 100)}%`;
+  attachMenus();
+  updateNowPlayingUI(null);
+  updateTimerInput();
+  if (state.eqState.preset === "Normal" && state.eqState.gains?.some(v => v !== 0)) state.eqState.preset = "Custom";
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
+
+  setInterval(() => {
+    updateTimerStatus();
+    if (state.timer.mode !== "off") checkTimer();
+    updateStats();
+  }, 1000);
+
+  renderWave();
+
+  function showCurrentStyle() {
+    if (state.favorites.length || state.search || !state.shuffle || state.repeat || state.favoriteOnly) updateHeader();
+  }
+  showCurrentStyle();
+
+})();
+</script>
+</body>
+</html>
