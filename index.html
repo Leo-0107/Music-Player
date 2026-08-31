@@ -514,7 +514,7 @@ input[type="range"]{
   min-width:0;
 }
 .vTrack{
-  height:300px;
+  height:170px;
   width:34px;
   position:relative;
   display:flex;
@@ -666,7 +666,7 @@ input[type="range"]{
   .header{padding:12px}
   .headerRight{display:none}
   .verticalArea{height:auto; overflow-x:auto; padding-bottom:8px}
-  .vTrack{height:300px}
+  .vTrack{height:190px}
   .vSlider{width:180px}
 }
 </style>
@@ -1164,7 +1164,7 @@ input[type="range"]{
         return f;
       });
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 128;
+      analyser.fftSize = 512;
       analyserData = new Uint8Array(analyser.frequencyBinCount);
       analyserSmooth = new Array(analyser.frequencyBinCount).fill(0);
 
@@ -2021,16 +2021,24 @@ input[type="range"]{
       return;
     }
     analyser.getByteFrequencyData(analyserData);
-    for (let i = 0; i < analyserData.length; i++) {
-      analyserSmooth[i] += (analyserData[i] - analyserSmooth[i]) * 0.18;
-    }
-    const bars = 48;
-    const center = h / 2;
-    const barW = w / bars;
-    for (let i = 0; i < bars; i++) {
-      const idx = Math.floor(i * (analyserData.length / bars));
-      const v = (analyserSmooth[idx] || 0) / 255;
-      const barH = Math.max(2, v * (h * 0.76));
+
+for (let i = 0; i < analyserData.length; i++) {
+  analyserSmooth[i] += (analyserData[i] - analyserSmooth[i]) * 0.35;
+}
+
+const bars = 48;
+const center = h / 2;
+const barW = w / bars;
+
+for (let i = 0; i < bars; i++) {
+  const idx = Math.floor(i * (analyserData.length / bars));
+
+  const v = Math.pow(
+    (analyserSmooth[idx] || 0) / 30,
+    0.75
+  );
+
+  const barH = Math.max(4, v * (h * 1.35));
       const x = i * barW + 2;
       ctx.fillStyle = v > .78 ? "rgba(248,210,92,.95)" : v > .50 ? "rgba(105,227,139,.95)" : "rgba(29,185,84,.92)";
       ctx.fillRect(x, center - barH/2, Math.max(2, barW - 4), barH);
