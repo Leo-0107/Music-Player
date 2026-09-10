@@ -4,864 +4,778 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Music Player</title>
-<meta name="theme-color" content="#1DB954">
-<link rel="manifest" href="manifest.json">
 <style>
-:root{
-  --bg:#121212;
-  --panel:#181818;
-  --panel2:#202020;
-  --panel3:#262626;
-  --line:#2e2e2e;
-  --text:#f5f5f5;
-  --muted:#b7b7b7;
-  --accent:#1DB954;
-  --accent2:#69e38b;
-  --warn:#f8d25c;
-  --danger:#ff6b6b;
-  --shadow:0 14px 40px rgba(0,0,0,.34);
+:root {
+  --bg: #121212;
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel2: rgba(255, 255, 255, 0.07);
+  --panel3: rgba(255, 255, 255, 0.12);
+  --line: rgba(255, 255, 255, 0.1);
+  --text: #f5f5f5;
+  --muted: #a0a0a0;
+  --accent: #1DB954;
+  --warn: #f8d25c;
+  --danger: #ff4d4d;
+  --shadow: 0 12px 36px rgba(0,0,0,.3);
+  --bg-gradient: linear-gradient(180deg, #1e1e24 0%, #121212 100%);
 }
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  background:radial-gradient(circle at top,#171717 0%, #121212 45%, #0d0d0d 100%);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  overscroll-behavior:none;
-}
-button,input,select{font:inherit}
-button{cursor:pointer}
-button:focus,input:focus,select:focus{outline:none}
-.app{
-  width:min(1180px,100%);
-  margin:0 auto;
-  padding:12px 14px 128px;
-}
-.shell{
-  background:rgba(24,24,24,.94);
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:24px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-}
-.header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:14px 14px 10px;
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  min-width:0;
-}
-.menuBtn{
-  width:42px;
-  height:42px;
-  border-radius:14px;
-  border:0;
-  background:var(--panel2);
-  color:var(--text);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
-  flex:0 0 auto;
-}
-.brandText{min-width:0}
-#nowTitle{
-  margin:0;
-  font-size:1.12rem;
-  line-height:1.2;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-#nowSub{
-  color:var(--muted);
-  font-size:.86rem;
-  margin-top:3px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.headerRight{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:8px 12px;
-  border-radius:999px;
-  font-size:.86rem;
-  background:var(--panel2);
-  border:1px solid rgba(255,255,255,.05);
-  color:var(--muted);
-}
-.grid{
-  display:grid;
-  grid-template-columns:300px 1fr;
-  gap:16px;
-  padding:14px;
-}
-@media (max-width:960px){
-  .grid{grid-template-columns:1fr}
-}
-.coverBox{
-  background:linear-gradient(180deg,#1a1a1a,#151515);
-  border-radius:22px;
-  min-height:300px;
-  border:1px solid rgba(255,255,255,.05);
-  position:relative;
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.coverBox::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:radial-gradient(circle at 50% 30%, rgba(255,255,255,.06), transparent 60%);
-  pointer-events:none;
-}
-#nowCover{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:none;
-}
-.coverFallback{
-  width:180px;
-  height:180px;
-  border-radius:28px;
-  background:linear-gradient(135deg,#242424,#111);
-  border:1px solid rgba(255,255,255,.06);
-  color:var(--muted);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:16px;
-  font-size:.95rem;
-}
-.playerPanel{min-width:0}
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  margin-bottom:10px;
-}
-label{
-  font-size:.86rem;
-  color:var(--muted);
-}
-input[type="text"],input[type="file"],select{
-  width:100%;
-  background:#101010;
-  color:var(--text);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;
-  padding:11px 12px;
-}
-input[type="text"]:focus,select:focus{
-  border-color:rgba(29,185,84,.7);
-  box-shadow:0 0 0 3px rgba(29,185,84,.15);
-}
-input[type="range"]{
-  width:100%;
-  accent-color:var(--accent);
-}
-.controls{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
-  margin:12px 0 10px;
-}
-.btn{
-  border:0;
-  border-radius:14px;
-  background:var(--panel2);
-  color:var(--text);
-  padding:10px 13px;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
-  transition:transform .12s ease, background .15s ease, opacity .15s ease;
-}
-.btn:hover{background:#2a2a2a}
-.btn:active{transform:scale(.96)}
-.btn.active{background:var(--accent); color:#08110c; font-weight:700;}
-.btn.warn.active{background:var(--warn); color:#181000}
-.btn.small{padding:9px 11px; border-radius:12px}
-.btn.ghost{background:transparent; box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
-.btn.icon{width:42px;height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-.progressWrap{display:grid; gap:8px}
-.timeLine{display:flex; justify-content:space-between; color:var(--muted); font-size:.84rem}
-.meter{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  color:var(--muted);
-  font-size:.88rem;
-}
-.wave{
-  width:100%;
-  height:112px;
-  background:#0f0f0f;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.05);
-  margin-top:10px;
-}
-.notice{
-  color:var(--muted);
-  font-size:.84rem;
-  line-height:1.5;
-  margin-top:8px;
-}
-.songHead{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  margin:6px 0 12px;
-}
-.songList{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-.song{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  background:#161616;
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:16px;
-  padding:10px 10px 10px 12px;
-  user-select:none;
-}
-.song.active{
-  background:rgba(29,185,84,.12);
-  border-color:rgba(29,185,84,.45);
-  box-shadow:0 0 0 1px rgba(29,185,84,.15) inset;
-}
-.song.dragging{
-  opacity:.55;
-  outline:1px dashed rgba(255,255,255,.18);
-}
-.songMain{
-  min-width:0;
-  flex:1;
-}
-.songName{
-  font-size:.98rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.songMeta{
-  margin-top:3px;
-  color:var(--muted);
-  font-size:.82rem;
-}
-.songRight{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-shrink:0;
-}
-.starBtn{
-  width:38px;
-  height:38px;
-  border:0;
-  border-radius:12px;
-  background:#262626;
-  color:#9c9c9c;
-  font-size:1.02rem;
-}
-.starBtn.active{
-  background:rgba(248,210,92,.15);
-  color:var(--warn);
-}
-.dragHandle{
-  width:32px;
-  height:38px;
-  border:0;
-  border-radius:12px;
-  background:#242424;
-  color:#b9b9b9;
-  touch-action:none;
-}
-.queueBtn{
-  border:0;
-  border-radius:12px;
-  background:#242424;
-  color:#d5d5d5;
-  padding:0 12px;
-  height:38px;
-}
-.badge{
-  border-radius:999px;
-  padding:5px 9px;
-  font-size:.76rem;
-  color:var(--muted);
-  background:#222;
-  border:1px solid rgba(255,255,255,.06);
-}
-.miniPlayer{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:40;
-  background:rgba(16,16,16,.97);
-  border-top:1px solid rgba(255,255,255,.07);
-  box-shadow:0 -10px 28px rgba(0,0,0,.35);
-}
-.miniInner{
-  width:min(1180px,100%);
-  margin:0 auto;
-  padding:10px 14px 12px;
-  display:grid;
-  gap:8px;
-}
-.miniTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-.miniNow{min-width:0; flex:1}
-#miniTitle{
-  font-size:.98rem;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-#miniSub{
-  font-size:.82rem;
-  color:var(--muted);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.miniBtns{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-.miniBtns .btn{padding:9px 11px; border-radius:12px}
 
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.54);
-  backdrop-filter:blur(6px);
-  z-index:60;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .18s ease;
+body.theme-light {
+  --bg: #f8f9fa;
+  --panel: rgba(0, 0, 0, 0.03);
+  --panel2: rgba(0, 0, 0, 0.05);
+  --panel3: rgba(0, 0, 0, 0.09);
+  --line: rgba(0, 0, 0, 0.09);
+  --text: #1a1a1a;
+  --muted: #6c757d;
+  --shadow: 0 8px 24px rgba(0,0,0,.06);
+  --bg-gradient: linear-gradient(180deg, #ffffff 0%, #f1f3f5 100%);
 }
-.overlay.open{
-  opacity:1;
-  pointer-events:auto;
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+  transition: background 0.3s ease, color 0.3s ease;
 }
-.sidebar{
-  position:fixed;
-  top:0;
-  left:0;
-  width:min(380px,92vw);
-  height:100%;
-  z-index:70;
-  background:linear-gradient(180deg, rgba(24,24,24,.99), rgba(18,18,18,.99));
-  border-right:1px solid rgba(255,255,255,.06);
-  transform:translateX(-102%);
-  transition:transform .22s ease;
-  box-shadow:20px 0 50px rgba(0,0,0,.45);
-  display:flex;
-  flex-direction:column;
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus, input:focus, select:focus { outline: none; }
+
+select option {
+  background: #222;
+  color: #fff;
 }
-.sidebar.open{transform:translateX(0)}
-.sideHead{
-  padding:14px;
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
+body.theme-light select option {
+  background: #fff;
+  color: #111;
 }
-.sideTitle{
-  font-size:1.02rem;
-  font-weight:700;
+
+.app {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 12px 14px 128px;
 }
-.menuList{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  padding:12px 14px 0;
+
+.shell {
+  background: var(--panel);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  transition: border-color 0.2s, background-color 0.2s;
 }
-.menuItem{
-  border:0;
-  width:100%;
-  text-align:left;
-  border-radius:14px;
-  background:#232323;
-  color:var(--text);
-  padding:12px 14px;
+
+.shell.dragover {
+  border: 2px dashed var(--accent);
+  background: rgba(29, 185, 84, 0.08);
 }
-.menuItem span{
-  color:var(--muted);
-  font-size:.84rem;
-  display:block;
-  margin-top:3px;
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
 }
-.sideBody{
-  overflow:auto;
-  padding:14px;
-  flex:1;
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
-.panelSection{display:none}
-.panelSection.active{display:block}
-.sectionCard{
-  background:#161616;
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:18px;
-  padding:12px;
-  margin-bottom:12px;
+
+.menuBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  border: 0;
+  background: var(--panel2);
+  color: var(--text);
+  flex: 0 0 auto;
+  font-size: 1.1rem;
 }
-.sectionTitle{
-  font-size:.92rem;
-  font-weight:700;
-  margin-bottom:10px;
+
+#nowTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.queueList,.statsList{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
+#nowSub {
+  color: var(--muted);
+  font-size: .86rem;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.queueItem{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:9px 10px;
-  background:#202020;
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:14px;
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.queueItem.current{
-  background:rgba(29,185,84,.12);
-  border-color:rgba(29,185,84,.35);
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: .86rem;
+  background: var(--panel2);
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
 }
-.queueItem .qTitle{
-  min-width:0;
-  flex:1;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+.pill.active {
+  background: rgba(29, 185, 84, 0.2);
+  color: var(--accent);
+  font-weight: 600;
 }
-.queueItem .qBtn{
-  border:0;
-  border-radius:10px;
-  background:#2a2a2a;
-  color:#ddd;
-  padding:7px 10px;
+
+.grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  padding: 20px;
 }
-.eqGrid{
-  display:grid;
-  gap:10px;
+@media (max-width: 960px) {
+  .grid { grid-template-columns: 1fr; }
 }
-.eqPresetRow{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
+
+.coverBox {
+  background: var(--panel2);
+  border-radius: 20px;
+  min-height: 320px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.eqBand{
-  background:#202020;
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:14px;
-  padding:10px;
+#nowCoverCanvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
 }
-.eqBandTop{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  margin-bottom:8px;
-  color:var(--muted);
-  font-size:.84rem;
+
+.playerPanel { min-width: 0; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
 }
-.verticalArea{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:10px;
-  height:220px;
+label {
+  font-size: .86rem;
+  color: var(--text);
 }
-.vBand{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-end;
-  gap:8px;
-  min-width:0;
+
+.fileInputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
-.vTrack{
-  height:170px;
-  width:34px;
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+
+input[type="text"], input[type="number"], input[type="file"], select {
+  width: 100%;
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 11px 12px;
 }
-.vTrack::before{
-  content:"";
-  position:absolute;
-  top:12px;
-  bottom:12px;
-  width:8px;
-  border-radius:999px;
-  background:#2a2a2a;
-  left:50%;
-  transform:translateX(-50%);
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  touch-action: pan-y;
+  transition: transform 0.1s linear;
 }
-.vSlider{
-  appearance:none;
-  -webkit-appearance:none;
-  width:170px;
-  height:24px;
-  transform:rotate(-90deg);
-  background:transparent;
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 12px;
 }
-.vSlider::-webkit-slider-runnable-track{
-  height:8px;
-  border-radius:999px;
-  background:transparent;
+
+.btn {
+  border: 0;
+  border-radius: 14px;
+  background: var(--panel2);
+  color: var(--text);
+  padding: 10px 16px;
+  transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
 }
-.vSlider::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  appearance:none;
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:var(--accent);
-  border:0;
-  box-shadow:0 0 0 4px rgba(29,185,84,.15);
-  margin-top:-5px;
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: scale(.96); }
+.btn.active { background: var(--accent); color: #000; font-weight: 700; }
+.btn.warn { background: var(--warn); color: #000; }
+.btn.danger { background: var(--danger); color: #fff; }
+.btn.small { padding: 8px 12px; border-radius: 12px; font-size: .88rem; }
+.btn.ghost { background: transparent; border: 1px solid var(--line); }
+
+.btnPlayMain {
+  padding: 12px 24px;
+  font-weight: 700;
+  border-radius: 16px;
+  background: var(--panel3);
 }
-.vSlider::-moz-range-thumb{
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:var(--accent);
-  border:0;
+.btnPlayMain.playing {
+  background: var(--accent) !important;
+  color: #000 !important;
+  box-shadow: 0 0 18px rgba(29, 185, 84, 0.45);
 }
-.vLabel{
-  font-size:.78rem;
-  color:var(--muted);
+
+.progressWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
 }
-.vValue{
-  font-size:.8rem;
-  color:#fff;
+
+.seekbarContainer {
+  position: relative;
+  width: 100%;
+  height: 36px;
+  display: flex;
+  align-items: flex-end;
 }
-.timerBox{
-  display:grid;
-  gap:10px;
+.seekbarHeatmap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 8px;
+  opacity: 0.6;
 }
-.timerStatus{
-  color:var(--muted);
-  font-size:.86rem;
-  line-height:1.45;
+.seekbarContainer input[type="range"] {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  height: 100%;
+  background: transparent;
 }
-.statsKV{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
+
+.timeLine { display: flex; justify-content: space-between; color: var(--muted); font-size: .84rem; }
+.meter { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .88rem; }
+
+.waveWrap {
+  width: 100%;
+  height: 100px;
+  background: var(--panel2);
+  border-radius: 16px;
+  margin-top: 14px;
+  overflow: hidden;
+  position: relative;
 }
-.kv{
-  background:#202020;
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:14px;
-  padding:10px;
+.wave {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
-.kv .k{color:var(--muted); font-size:.8rem}
-.kv .v{font-size:1.02rem; margin-top:5px; font-weight:700}
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:142px;
-  transform:translateX(-50%) translateY(16px);
-  opacity:0;
-  z-index:90;
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(16,16,16,.96);
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:var(--shadow);
-  color:#fff;
-  transition:opacity .18s ease, transform .18s ease;
-  pointer-events:none;
-  font-size:.9rem;
+
+.songHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 10px;
 }
-.toast.show{
-  opacity:1;
-  transform:translateX(-50%) translateY(0);
+.songList { display: flex; flex-direction: column; gap: 8px; }
+.song {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--panel2);
+  border-radius: 14px;
+  padding: 10px 14px;
+  user-select: none;
+  cursor: pointer;
 }
-.modal{
-  position:fixed;
-  inset:0;
-  z-index:80;
-  display:none;
-  align-items:flex-start;
-  justify-content:center;
-  padding:74px 14px 18px;
-  background:rgba(0,0,0,.46);
-  backdrop-filter:blur(6px);
+.song.active {
+  background: rgba(29, 185, 84, 0.15);
+  border: 1px solid rgba(29, 185, 84, 0.4);
 }
-.modal.open{display:flex}
-.sheet{
-  width:min(760px,100%);
-  background:rgba(24,24,24,.98);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:22px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-  transform:translateY(-22px);
-  opacity:0;
-  transition:transform .2s ease, opacity .2s ease;
+.songMain { min-width: 0; flex: 1; }
+.songName { font-size: .96rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.songArtist { color: var(--muted); font-size: .82rem; margin-top: 2px; }
+.songMeta { margin-top: 2px; color: var(--muted); font-size: .78rem; }
+.songRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.starBtn, .queueBtn, .addPlBtn, .delTrackBtn {
+  border: 0;
+  border-radius: 10px;
+  background: var(--panel3);
+  color: var(--text);
+  padding: 6px 10px;
+  font-size: .85rem;
 }
-.modal.open .sheet{
-  transform:translateY(0);
-  opacity:1;
+.starBtn.active { background: rgba(248,210,92,.2); color: var(--warn); }
+.delTrackBtn:hover { background: rgba(255,77,77,.2); color: var(--danger); }
+
+.miniPlayer {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 40;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -8px 24px rgba(0,0,0,.2);
 }
-.sheetHeader{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:14px;
-  border-bottom:1px solid rgba(255,255,255,.06);
+.miniInner {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 8px 16px 10px;
+  display: grid;
+  gap: 6px;
 }
-.sheetTitle{font-weight:700}
-.sheetBody{padding:14px}
-.modalTop{
-  align-items:flex-start;
+.miniTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.miniNow { min-width: 0; flex: 1; }
+#miniTitle { font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#miniSub { font-size: .8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.miniBtns { display: flex; gap: 6px; }
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(4px);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
 }
-.modalTop .sheet{
-  margin-top:0;
+.overlay.open { opacity: 1; pointer-events: auto; }
+
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: min(420px, 92vw); height: 100%;
+  z-index: 70;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+  transform: translateX(-102%);
+  transition: transform .22s ease;
+  display: flex;
+  flex-direction: column;
 }
-.modalTop.open .sheet{
-  transform:translateY(0);
+.sidebar.open { transform: translateX(0); }
+.sideHead {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-@media (max-width:760px){
-  .grid{padding:12px}
-  .coverBox{min-height:250px}
-  .header{padding:12px}
-  .headerRight{display:none}
-  .verticalArea{height:auto; overflow-x:auto; padding-bottom:8px}
-  .vTrack{height:190px}
-  .vSlider{width:180px}
+.sideHeadLeft { display: flex; align-items: center; gap: 10px; }
+.backBtn {
+  background: var(--panel2);
+  border: 0;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: .88rem;
+  display: none;
 }
+.sideTitle { font-size: 1.02rem; font-weight: 700; }
+.sideBody { overflow-y: auto; padding: 16px; flex: 1; }
+.menuList { display: flex; flex-direction: column; gap: 8px; }
+.menuItem {
+  border: 0; width: 100%; text-align: left;
+  border-radius: 14px; background: var(--panel2); color: var(--text);
+  padding: 12px 14px;
+}
+.menuItem span { color: var(--muted); font-size: .82rem; display: block; margin-top: 2px; }
+
+.panelSection { display: none; }
+.panelSection.active { display: block; }
+.sectionCard {
+  background: var(--panel2);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.sectionTitle { font-size: .92rem; font-weight: 700; margin-bottom: 10px; }
+
+.eqPresetRow { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.verticalArea { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 190px; }
+.vBand { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; }
+.vTrack {
+  height: 140px;
+  width: 36px;
+  background: var(--panel3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 6px 0;
+}
+.vSlider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 100%;
+  height: 128px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  background: transparent;
+  transition: opacity 0.1s;
+}
+.vVal { font-size: .75rem; font-weight: 700; color: var(--accent); }
+
+.colorPickerGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 8px 0; }
+.colorDot {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: transform .12s ease;
+}
+.colorDot.selected { border-color: var(--text); transform: scale(1.15); }
+
+.gradDirectionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.gradOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--panel3);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: .88rem;
+  user-select: none;
+}
+.radioDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.radioDot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: none;
+}
+.gradOption.selected .radioDot::after {
+  display: block;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.modalBackdrop.show {
+  display: flex;
+  opacity: 1;
+}
+.modalCard {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  width: min(340px, 90%);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.modalTextRed {
+  color: var(--danger);
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+.toast {
+  position: fixed; left: 50%; bottom: 110px;
+  transform: translateX(-50%) translateY(16px);
+  opacity: 0; z-index: 90;
+  padding: 10px 18px; border-radius: 999px;
+  background: var(--panel3); color: var(--text);
+  box-shadow: var(--shadow); backdrop-filter: blur(8px);
+  transition: opacity .18s ease, transform .18s ease;
+  pointer-events: none; font-size: .88rem;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
+
 <div class="overlay" id="overlay"></div>
 
-<aside class="sidebar" id="sidebar" aria-hidden="true">
+<div class="modalBackdrop" id="plAlertModal">
+  <div class="modalCard">
+    <div class="modalTextRed">プレイリストの名前を設定してください</div>
+    <button class="btn small" id="btnClosePlModal">閉じる</button>
+  </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
   <div class="sideHead">
-    <div class="sideTitle">Music Player</div>
+    <div class="sideHeadLeft">
+      <button class="backBtn" id="btnSideBack">← 戻る</button>
+      <div class="sideTitle" id="sideTitle">メニュー</div>
+    </div>
     <button class="menuBtn" id="btnCloseMenu">×</button>
   </div>
-  <div class="menuList">
-    <button class="menuItem" data-open="queueModal">再生キュー<span>キューを見たり並び替えたりする</span></button>
-    <button class="menuItem" data-open="eqModal">イコライザー<span>5バンドとプリセットを調整する</span></button>
-    <button class="menuItem" data-open="timerModal">スリープタイマー<span>○時○分 / ○分後で停止</span></button>
-    <button class="menuItem" data-open="statsModal">ランキング<span>再生回数や最近再生を見る</span></button>
-    <button class="menuItem" data-open="settingsSection">その他設定<span>シャッフルやリピートを切り替える</span></button>
-  </div>
   <div class="sideBody">
-    <section id="settingsSection" class="panelSection active">
+    <div class="menuList" id="mainMenuList">
+      <button class="menuItem" data-section="optionsSection">再生オプション<span>再生速度・立体音響(2D-16D)・キー・フェード・無音スキップ</span></button>
+      <button class="menuItem" data-section="playlistSection">プレイリスト<span>作成・曲の追加・管理</span></button>
+      <button class="menuItem" data-section="queueSection">再生キュー<span>順序変更・クリア</span></button>
+      <button class="menuItem" data-section="eqSection">イコライザー<span>5バンド調整・プリセット</span></button>
+      <button class="menuItem" data-section="timerSection">スリープタイマー<span>自動停止設定</span></button>
+      <button class="menuItem" data-section="statsSection">再生統計<span>再生回数・曲数・お気に入り</span></button>
+      <button class="menuItem" data-section="themeSection">テーマ・カスタムカラー<span>12色パレット・明暗調整</span></button>
+    </div>
+
+    <section id="optionsSection" class="panelSection">
       <div class="sectionCard">
-        <div class="sectionTitle">その他設定</div>
-        <div class="controls" style="margin:0 0 10px">
-          <button class="btn small" id="btnSideShuffle">シャッフル</button>
-          <button class="btn small" id="btnSideRepeat">リピート</button>
-          <button class="btn small" id="btnFavOnlySide">お気に入りのみ</button>
+        <div class="sectionTitle">再生速度</div>
+        <div class="meter" style="margin-bottom:8px">
+          <span>スピード</span>
+          <span id="rateText">1.00x</span>
         </div>
-        <div class="notice">
-          バックグラウンド再生とロック画面操作は Media Session で対応。<br>
-          PWAは manifest.json / sw.js / icon-192.png / icon-512.png を同じフォルダに置いて使う。
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: .82rem; color: var(--muted); display: block; margin-bottom: 4px;">バー (0.25x - 2.0x)</label>
+          <input type="range" id="playbackRate" min="0.25" max="2.0" step="0.05" value="1.0">
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+          <label for="customRateInput" style="font-size: .86rem;">カスタム (0.1x - 10x):</label>
+          <input type="number" id="customRateInput" min="0.1" max="10" step="0.1" value="1.0" style="width: 80px; padding: 6px 8px; border-radius: 10px;">
+        </div>
+      </div>
+
+      <div class="sectionCard">
+        <div class="sectionTitle">立体音響モード (2D〜16D)</div>
+        <div class="controls" id="dModeBtns">
+          <button class="btn small active" data-d="2D">2D (通常)</button>
+          <button class="btn small" data-d="3D">3D</button>
+          <button class="btn small" data-d="4D">4D</button>
+          <button class="btn small" data-d="8D">8D</button>
+          <button class="btn small" data-d="16D">16D</button>
+        </div>
+        <div style="font-size:.78rem; color:var(--muted); margin-top:6px" id="dModeDesc">2D: 標準ステレオ再生</div>
+        
+        <div class="meter" style="margin-top:12px">
+          <span>左右手動パン (2D/3D時)</span>
+          <span id="pannerValText">中央</span>
+        </div>
+        <input type="range" id="pannerSlider" min="-1" max="1" step="0.1" value="0">
+      </div>
+
+      <div class="sectionCard">
+        <div class="sectionTitle">キー（ピッチ音高）</div>
+        <div class="meter" style="margin-bottom:8px">
+          <span>音高シフト</span>
+          <span id="pitchText">±0</span>
+        </div>
+        <input type="range" id="pitchShift" min="-6" max="6" step="1" value="0">
+      </div>
+
+      <div class="sectionCard">
+        <div class="sectionTitle">スマート再生設定</div>
+        <div class="controls">
+          <button class="btn small active" id="btnCrossfade">クロスフェード: ON</button>
+          <button class="btn small active" id="btnSilenceSkip">無音スキップ: ON</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="playlistSection" class="panelSection">
+      <div class="sectionCard">
+        <div class="sectionTitle">新規プレイリスト作成</div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="newPlName" placeholder="プレイリスト名を入力">
+          <button class="btn small" id="btnCreatePl">作成</button>
+        </div>
+      </div>
+      <div id="playlistContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </section>
+
+    <section id="queueSection" class="panelSection">
+      <div id="queueList" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <div class="controls" style="margin-top:12px">
+        <button class="btn small warn" id="btnQueueClear">全消去</button>
+        <button class="btn small ghost" id="btnQueueShuffle">シャッフル</button>
+      </div>
+    </section>
+
+    <section id="eqSection" class="panelSection">
+      <div class="sectionCard">
+        <div class="sectionTitle">プリセット</div>
+        <div class="eqPresetRow" id="eqPresetRow"></div>
+      </div>
+      <div class="sectionCard">
+        <div class="sectionTitle">5バンド調整 (±12dB)</div>
+        <div class="verticalArea" id="eqBands"></div>
+      </div>
+      <button class="btn small ghost" id="btnEqReset">リセット</button>
+    </section>
+
+    <section id="timerSection" class="panelSection">
+      <div class="sectionCard">
+        <div class="sectionTitle">自動停止タイマー</div>
+        <div class="controls">
+          <button class="btn small active" data-timer="off">OFF</button>
+          <button class="btn small" data-timer="15">15分</button>
+          <button class="btn small" data-timer="30">30分</button>
+          <button class="btn small" data-timer="60">60分</button>
+        </div>
+        <div style="margin-top:10px; color:var(--text); font-size:.86rem" id="timerStatus">タイマーOFF</div>
+      </div>
+    </section>
+
+    <section id="statsSection" class="panelSection">
+      <div class="sectionCard">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <div><span style="color:var(--muted); font-size:.8rem">総再生数</span><div id="statPlays" style="font-size:1.1rem; font-weight:700">0</div></div>
+          <div><span style="color:var(--muted); font-size:.8rem">曲数</span><div id="statSongs" style="font-size:1.1rem; font-weight:700">0</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="themeSection" class="panelSection">
+      <div class="sectionCard">
+        <div class="sectionTitle">モード選択</div>
+        <div class="controls">
+          <button class="btn small" id="btnThemeSystem">自動（OS設定）</button>
+          <button class="btn small" id="btnThemeDark">ダーク</button>
+          <button class="btn small" id="btnThemeLight">ライト</button>
+          <button class="btn small" id="btnThemeCustom">カスタム</button>
+        </div>
+      </div>
+      <div class="sectionCard" id="customThemeArea" style="display:none;">
+        <div class="sectionTitle">12色カラー ＆ 明暗微調整</div>
+        
+        <div class="field">
+          <label>背景カラー 1</label>
+          <div class="colorPickerGrid" id="gridColor1"></div>
+          <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtL1" style="font-size:.78rem">100%</span></div>
+          <input type="range" id="sliderL1" min="0" max="200" value="100">
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>背景カラー 2</label>
+          <div class="colorPickerGrid" id="gridColor2"></div>
+          <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtL2" style="font-size:.78rem">100%</span></div>
+          <input type="range" id="sliderL2" min="0" max="200" value="100">
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>文字カラー</label>
+          <div class="colorPickerGrid" id="gridTextColor"></div>
+          <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtLText" style="font-size:.78rem">100%</span></div>
+          <input type="range" id="sliderLText" min="0" max="200" value="100">
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>グラデーション方向</label>
+          <div class="gradDirectionGrid" id="gradDirectionList">
+            <div class="gradOption" data-deg="180deg"><div class="radioDot"></div>上から下 ↓</div>
+            <div class="gradOption" data-deg="90deg"><div class="radioDot"></div>左から右 →</div>
+            <div class="gradOption" data-deg="135deg"><div class="radioDot"></div>斜め ↘</div>
+            <div class="gradOption" data-deg="0deg"><div class="radioDot"></div>下から上 ↑</div>
+          </div>
         </div>
       </div>
     </section>
   </div>
 </aside>
 
-<div class="modal modalTop" id="queueModal" aria-hidden="true">
-  <div class="sheet">
-    <div class="sheetHeader">
-      <div class="sheetTitle">再生キュー</div>
-      <button class="btn small" data-close-modal>閉じる</button>
-    </div>
-    <div class="sheetBody">
-      <div class="notice">曲を追加した順に並ぶ。ここでドラッグして順番変更もできる。</div>
-      <div style="height:10px"></div>
-      <div class="queueList" id="queueList"></div>
-      <div class="controls" style="margin:12px 0 0">
-        <button class="btn small" id="btnQueueClear">全消去</button>
-        <button class="btn small ghost" id="btnQueueShuffle">キューを並び替え</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="eqModal" aria-hidden="true">
-  <div class="sheet">
-    <div class="sheetHeader">
-      <div class="sheetTitle">イコライザー</div>
-      <button class="btn small" data-close-modal>閉じる</button>
-    </div>
-    <div class="sheetBody">
-      <div class="sectionCard">
-        <div class="sectionTitle">プリセット</div>
-        <div class="eqPresetRow" id="eqPresetRow"></div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">5バンド調整</div>
-        <div class="verticalArea" id="eqBands"></div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">カスタム保存</div>
-        <div class="field" style="margin:0">
-          <input type="text" id="eqName" placeholder="My EQ">
-        </div>
-        <div class="controls" style="margin:10px 0 0">
-          <button class="btn small" id="btnEqSave">この設定を保存</button>
-          <button class="btn small ghost" id="btnEqReset">リセット</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="timerModal" aria-hidden="true">
-  <div class="sheet">
-    <div class="sheetHeader">
-      <div class="sheetTitle">スリープタイマー</div>
-      <button class="btn small" data-close-modal>閉じる</button>
-    </div>
-    <div class="sheetBody">
-      <div class="sectionCard">
-        <div class="sectionTitle">時刻 / 分で設定</div>
-        <div class="timerBox">
-          <div class="controls" style="margin:0">
-            <button class="btn small" data-timer="off">OFF</button>
-            <button class="btn small" data-timer="15">15分後</button>
-            <button class="btn small" data-timer="30">30分後</button>
-            <button class="btn small" data-timer="60">60分後</button>
-          </div>
-          <div class="field">
-            <label>○時○分に停止</label>
-            <input type="time" id="timerTime">
-          </div>
-          <div class="controls" style="margin:0">
-            <button class="btn small" id="btnTimerAt">この時刻で設定</button>
-          </div>
-          <div class="timerStatus" id="timerStatus">タイマーはOFF</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="statsModal" aria-hidden="true">
-  <div class="sheet">
-    <div class="sheetHeader">
-      <div class="sheetTitle">ランキング</div>
-      <button class="btn small" data-close-modal>閉じる</button>
-    </div>
-    <div class="sheetBody">
-      <div class="sectionCard">
-        <div class="sectionTitle">統計</div>
-        <div class="statsKV">
-          <div class="kv"><div class="k">総再生回数</div><div class="v" id="statPlays">0</div></div>
-          <div class="kv"><div class="k">総再生時間</div><div class="v" id="statTime">0:00</div></div>
-          <div class="kv"><div class="k">曲数</div><div class="v" id="statSongs">0</div></div>
-          <div class="kv"><div class="k">お気に入り</div><div class="v" id="statFavs">0</div></div>
-        </div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">TOP10</div>
-        <div class="statsList" id="topList"></div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">最近再生</div>
-        <div class="statsList" id="recentList"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="app">
-  <div class="shell">
+  <div class="shell" id="shell">
     <header class="header">
       <div class="brand">
         <button class="menuBtn" id="btnMenu">☰</button>
-        <div class="brandText">
+        <div>
           <h1 id="nowTitle">未再生</h1>
-          <div id="nowSub">フォルダを選ぶと曲一覧が出る</div>
+          <div id="nowSub">ファイルをドロップまたは選択してください</div>
         </div>
       </div>
       <div class="headerRight">
         <div class="pill" id="pillSongs">0曲</div>
-        <div class="pill" id="pillFavs">0お気に入り</div>
-        <div class="pill" id="pillQueue">0キュー</div>
+        <div class="pill" id="pillFavs">0☆</div>
       </div>
     </header>
 
     <div class="grid">
-      <div class="coverBox" id="coverBox">
-        <img id="nowCover" alt="">
-        <div class="coverFallback" id="coverFallback">再生中の曲の表示</div>
+      <div class="coverBox">
+        <canvas id="nowCoverCanvas" width="320" height="320"></canvas>
       </div>
 
       <div class="playerPanel">
         <div class="field">
-          <label>音声ファイル（フォルダ選択でも複数選択でもOK）</label>
-          <input type="file" id="folder" webkitdirectory multiple accept=".mp3,.m4a,.wav,.ogg,.flac,.aac,.webm,audio/*">
+          <label>音声ファイル読み込み（ドラッグ＆ドロップ対応・自動ストレージ保存）</label>
+          <div class="fileInputRow">
+            <input type="file" id="folder" webkitdirectory multiple accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac">
+            <button class="btn warn small" id="btnResetFiles" style="white-space:nowrap;">全リセット</button>
+          </div>
         </div>
 
         <div class="field">
-          <label>検索</label>
-          <input type="text" id="search" placeholder="曲名で検索">
+          <input type="text" id="search" placeholder="曲名やアーティストで検索">
         </div>
 
         <div class="controls">
-          <button class="btn strong" id="btnShuffle">シャッフル</button>
-          <button class="btn strong" id="btnRepeat">リピート</button>
-          <button class="btn strong" id="btnFavOnly">お気に入りのみ</button>
-          <button class="btn" id="btnPrev">前へ</button>
-          <button class="btn" id="btnPlay">再生 / 停止</button>
-          <button class="btn" id="btnNext">次へ</button>
+          <button class="btn" id="btnPrev">⏮ 前へ</button>
+          <button class="btn btnPlayMain" id="btnPlay">▶ 再生</button>
+          <button class="btn" id="btnNext">次へ ⏭</button>
           <button class="btn warn" id="btnFav">☆</button>
+          <button class="btn small" id="btnMainShuffle">🔀</button>
+          <button class="btn small" id="btnMainRepeat">🔁</button>
         </div>
 
         <div class="progressWrap">
-          <input type="range" id="progress" min="0" max="100" value="0">
+          <div class="seekbarContainer">
+            <canvas id="seekbarHeatmap" class="seekbarHeatmap"></canvas>
+            <input type="range" id="progress" min="0" max="100" value="0">
+          </div>
           <div class="timeLine">
             <span id="timeNow">0:00</span>
             <span id="timeAll">0:00</span>
           </div>
         </div>
 
-        <div class="field" style="margin-top:10px">
+        <div class="field" style="margin-top:12px">
           <div class="meter">
             <span>音量</span>
             <span id="volText">100%</span>
@@ -869,19 +783,13 @@ input[type="range"]{
           <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
         </div>
 
-        <canvas id="wave" class="wave" width="900" height="112"></canvas>
-
-        <div class="notice">
-          シングルタップで再生、ダブルタップでキュー追加。<br>
-          星は黄色でお気に入り。左の☰メニューからキュー・EQ・タイマー・統計に入れる。
+        <div class="waveWrap">
+          <canvas id="wave" class="wave"></canvas>
         </div>
 
         <div class="songHead">
-          <div>
-            <div style="font-weight:700; margin-bottom:4px">曲一覧</div>
-            <div class="notice" id="listHint">まだ読み込み前</div>
-          </div>
-          <div class="badge" id="shuffleState">シャッフル: ON</div>
+          <div style="font-weight:700">曲一覧</div>
+          <div class="pill" id="shuffleState">シャッフル: ON</div>
         </div>
 
         <div id="list" class="songList"></div>
@@ -895,19 +803,15 @@ input[type="range"]{
     <div class="miniTop">
       <div class="miniNow">
         <div id="miniTitle">停止中</div>
-        <div id="miniSub">まだ再生していない</div>
+        <div id="miniSub">ファイル未選択</div>
       </div>
       <div class="miniBtns">
-        <button class="btn small" id="miniPrev">前へ</button>
-        <button class="btn small" id="miniPlay">再生 / 停止</button>
-        <button class="btn small" id="miniNext">次へ</button>
+        <button class="btn small" id="miniPrev">⏮</button>
+        <button class="btn small btnPlayMain" id="miniPlay">▶</button>
+        <button class="btn small" id="miniNext">⏭</button>
       </div>
     </div>
     <input type="range" id="miniProgress" min="0" max="100" value="0">
-    <div class="timeLine">
-      <span id="miniTimeNow">0:00</span>
-      <span id="miniTimeAll">0:00</span>
-    </div>
   </div>
 </div>
 
@@ -916,1358 +820,1459 @@ input[type="range"]{
 <script>
 (() => {
   const STORAGE = {
-    favorites: "mp_favorites_v6",
-    order: "mp_order_v6",
-    queue: "mp_queue_v6",
-    playCounts: "mp_playCounts_v6",
-    listened: "mp_listened_v6",
-    recent: "mp_recent_v6",
-    eqState: "mp_eqState_v6",
-    eqCustom: "mp_eqCustom_v6",
-    timer: "mp_timer_v6",
-    volume: "mp_volume_v6",
-    shuffle: "mp_shuffle_v6",
-    repeat: "mp_repeat_v6",
-    favoriteOnly: "mp_favoriteOnly_v6",
-    search: "mp_search_v6",
-    lastSong: "mp_lastSong_v6",
-    lastSongPos: "mp_lastSongPos_v6",
-    backStack: "mp_backStack_v6"
+    favorites: "mp_favs_v12",
+    queue: "mp_queue_v12",
+    playCounts: "mp_counts_v12",
+    eqState: "mp_eq_v12",
+    volume: "mp_vol_v12",
+    pitch: "mp_pitch_v12",
+    shuffle: "mp_shuffle_v12",
+    repeat: "mp_repeat_v12",
+    favOnly: "mp_favonly_v12",
+    themeMode: "mp_thememode_v12",
+    customTheme: "mp_custtheme_v12",
+    playlists: "mp_playlists_v12",
+    crossfade: "mp_crossfade_v12",
+    silenceSkip: "mp_silenceskip_v12",
+    dMode: "mp_dmode_v12"
   };
-
-  const EQ_BANDS = [
-    { label: "60Hz",   type: "lowshelf",  freq: 60 },
-    { label: "250Hz",  type: "peaking",   freq: 250 },
-    { label: "1kHz",   type: "peaking",   freq: 1000 },
-    { label: "4kHz",   type: "peaking",   freq: 4000 },
-    { label: "12kHz",  type: "highshelf", freq: 12000 },
-  ];
 
   const EQ_PRESETS = {
-    Normal: [0, 0, 0, 0, 0],
-    BassBoost: [7, 4, 0, -1, -2],
-    Vocal: [-2, 1, 4, 2, 0],
-    Rock: [4, 2, 0, 2, 4],
-    TrebleBoost: [-3, -1, 0, 3, 6],
+    "Normal": [0,0,0,0,0],
+    "Pop": [2,1,0,2,3],
+    "Rock": [4,2,-1,2,4],
+    "Jazz": [3,2,1,2,2],
+    "Bass Boost": [6,4,0,0,0]
   };
+
+  const COLOR_PALETTE_12 = [
+    "#e63946", "#f77f00", "#fcbf49", "#aacc00", 
+    "#2b9348", "#00a896", "#0077b6", "#1d3557", 
+    "#7209b7", "#f72585", "#121212", "#ffffff"
+  ];
+
+  const dbName = "MusicPlayerDB_v2";
+  let db = null;
+  function initDB() {
+    return new Promise(resolve => {
+      const req = indexedDB.open(dbName, 1);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains("tracks")) d.createObjectStore("tracks", { keyPath: "name" });
+      };
+      req.onsuccess = e => { db = e.target.result; resolve(); };
+      req.onerror = () => resolve();
+    });
+  }
+
+  function saveTrackToDB(trackData) {
+    if (!db) return;
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(trackData);
+  }
+
+  function deleteTrackFromDB(name) {
+    return new Promise(resolve => {
+      if (!db) return resolve();
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").delete(name);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  }
+
+  function loadTracksFromDB() {
+    return new Promise(resolve => {
+      if (!db) return resolve([]);
+      const tx = db.transaction("tracks", "readonly");
+      const req = tx.objectStore("tracks").getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+  }
+
+  function decodeID3String(byteArray) {
+    if (!byteArray || !byteArray.length) return "";
+    const encoding = byteArray[0];
+    const data = byteArray.subarray(1);
+    try {
+      if (encoding === 1 || encoding === 2) {
+        return new TextDecoder("utf-16").decode(data).replace(/\0/g, '').trim();
+      } else {
+        return new TextDecoder("utf-8").decode(data).replace(/\0/g, '').trim();
+      }
+    } catch {
+      return "";
+    }
+  }
+
+  function parseID3(file) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const buf = e.target.result;
+        const view = new DataView(buf);
+        let title = file.name.replace(/\.[^/.]+$/, "");
+        let artist = "不明なアーティスト";
+        let coverBlob = null;
+
+        if (buf.byteLength > 10 && view.getUint8(0) === 0x49 && view.getUint8(1) === 0x44 && view.getUint8(2) === 0x33) {
+          let offset = 10;
+          const size = (view.getUint8(6) << 21) | (view.getUint8(7) << 14) | (view.getUint8(8) << 7) | view.getUint8(9);
+          while (offset < size + 10 && offset + 10 < buf.byteLength) {
+            const frameID = String.fromCharCode(view.getUint8(offset), view.getUint8(offset+1), view.getUint8(offset+2), view.getUint8(offset+3));
+            const frameSize = view.getUint32(offset + 4);
+            if (frameSize <= 0 || offset + 10 + frameSize > buf.byteLength) break;
+            const frameData = new Uint8Array(buf, offset + 10, frameSize);
+            
+            try {
+              if (frameID === "TIT2") {
+                title = decodeID3String(frameData) || title;
+              } else if (frameID === "TPE1") {
+                artist = decodeID3String(frameData) || artist;
+              } else if (frameID === "APIC") {
+                let p = 1;
+                while(p < frameData.length && frameData[p] !== 0) p++;
+                const mime = new TextDecoder("ascii").decode(frameData.subarray(1, p)) || "image/jpeg";
+                let imgStart = p + 2;
+                while(imgStart < frameData.length && frameData[imgStart] === 0) imgStart++;
+                coverBlob = new Blob([frameData.subarray(imgStart)], { type: mime });
+              }
+            } catch {}
+            offset += 10 + frameSize;
+          }
+        }
+        resolve({ title, artist, coverBlob });
+      };
+      reader.onerror = () => resolve({ title: file.name.replace(/\.[^/.]+$/, ""), artist: "不明なアーティスト", coverBlob: null });
+      reader.readAsArrayBuffer(file.slice(0, 128 * 1024));
+    });
+  }
 
   const audio = new Audio();
   audio.preload = "auto";
 
-  let audioCtx = null;
-  let sourceNode = null;
-  let filters = [];
-  let analyser = null;
-  let analyserData = null;
-  let analyserSmooth = null;
+  let audioCtx = null, sourceNode = null, filters = [], masterGain = null, pannerNode = null, panner3DNode = null, analyser = null, analyserData = null;
   let audioGraphReady = false;
+  let isSlidingRange = false;
+  let currentRate = 1.0;
+  let spatialAngle = 0;
+
+  const historyStack = [];
+  let historyIndex = -1;
+  const heatMapData = {};
+
+  let sleepTimerId = null;
+  let sleepTimerEnd = null;
 
   const state = {
     playlist: [],
     currentSong: null,
     favorites: loadJSON(STORAGE.favorites, []),
-    order: loadJSON(STORAGE.order, []),
     queue: loadJSON(STORAGE.queue, []),
     playCounts: loadJSON(STORAGE.playCounts, {}),
-    listened: loadJSON(STORAGE.listened, {}),
-    recent: loadJSON(STORAGE.recent, []),
     eqState: loadJSON(STORAGE.eqState, { preset: "Normal", gains: [0,0,0,0,0] }),
-    eqCustom: loadJSON(STORAGE.eqCustom, {}),
-    timer: loadJSON(STORAGE.timer, { mode: "off", target: 0, label: "OFF", stopAfterCurrent: false }),
     shuffle: loadBool(STORAGE.shuffle, true),
     repeat: loadBool(STORAGE.repeat, false),
-    favoriteOnly: loadBool(STORAGE.favoriteOnly, false),
-    search: loadStr(STORAGE.search, ""),
-    backStack: loadJSON(STORAGE.backStack, []),
-    pendingSeek: null,
-    lastTick: 0,
-    songTapId: null,
-    songTapTs: 0,
-    timerExpired: false,
-    menuOpen: false,
-    activePanel: "settingsSection",
+    favOnly: loadBool(STORAGE.favOnly, false),
+    search: "",
+    themeMode: loadStr(STORAGE.themeMode, "system"),
+    customTheme: loadJSON(STORAGE.customTheme, { 
+      c1: "#1d3557", l1: 100, 
+      c2: "#121212", l2: 100, 
+      text: "#ffffff", lText: 100, 
+      dir: "180deg" 
+    }),
+    pitchSemitones: loadNum(STORAGE.pitch, 0),
+    playlists: loadJSON(STORAGE.playlists, {}),
+    crossfade: loadBool(STORAGE.crossfade, true),
+    silenceSkip: loadBool(STORAGE.silenceSkip, true),
+    dMode: loadStr(STORAGE.dMode, "2D"),
+    panValue: 0,
+    menuOpen: false
   };
 
   const el = {
+    shell: document.getElementById("shell"),
     folder: document.getElementById("folder"),
+    btnResetFiles: document.getElementById("btnResetFiles"),
     search: document.getElementById("search"),
     list: document.getElementById("list"),
-    listHint: document.getElementById("listHint"),
     nowTitle: document.getElementById("nowTitle"),
     nowSub: document.getElementById("nowSub"),
     miniTitle: document.getElementById("miniTitle"),
     miniSub: document.getElementById("miniSub"),
-    nowCover: document.getElementById("nowCover"),
-    coverFallback: document.getElementById("coverFallback"),
-    coverBox: document.getElementById("coverBox"),
-    songCount: document.getElementById("pillSongs"),
-    favCount: document.getElementById("pillFavs"),
-    queueCount: document.getElementById("pillQueue"),
-    statsSongs: document.getElementById("statSongs"),
-    statsFavs: document.getElementById("statFavs"),
-    statsPlays: document.getElementById("statPlays"),
-    statsTime: document.getElementById("statTime"),
-    topList: document.getElementById("topList"),
-    recentList: document.getElementById("recentList"),
+    pillSongs: document.getElementById("pillSongs"),
+    pillFavs: document.getElementById("pillFavs"),
+    statPlays: document.getElementById("statPlays"),
+    statSongs: document.getElementById("statSongs"),
     queueList: document.getElementById("queueList"),
     eqPresetRow: document.getElementById("eqPresetRow"),
     eqBands: document.getElementById("eqBands"),
-    eqName: document.getElementById("eqName"),
-    timerStatus: document.getElementById("timerStatus"),
-    timerTime: document.getElementById("timerTime"),
-    btnTimerAt: document.getElementById("btnTimerAt"),
     btnMenu: document.getElementById("btnMenu"),
     btnCloseMenu: document.getElementById("btnCloseMenu"),
+    btnSideBack: document.getElementById("btnSideBack"),
+    sideTitle: document.getElementById("sideTitle"),
     overlay: document.getElementById("overlay"),
     sidebar: document.getElementById("sidebar"),
-    btnShuffle: document.getElementById("btnShuffle"),
-    btnRepeat: document.getElementById("btnRepeat"),
-    btnFavOnly: document.getElementById("btnFavOnly"),
+    mainMenuList: document.getElementById("mainMenuList"),
     btnPrev: document.getElementById("btnPrev"),
     btnPlay: document.getElementById("btnPlay"),
     btnNext: document.getElementById("btnNext"),
     btnFav: document.getElementById("btnFav"),
+    btnMainShuffle: document.getElementById("btnMainShuffle"),
+    btnMainRepeat: document.getElementById("btnMainRepeat"),
     miniPrev: document.getElementById("miniPrev"),
     miniPlay: document.getElementById("miniPlay"),
     miniNext: document.getElementById("miniNext"),
     volume: document.getElementById("volume"),
     volText: document.getElementById("volText"),
+    playbackRate: document.getElementById("playbackRate"),
+    customRateInput: document.getElementById("customRateInput"),
+    rateText: document.getElementById("rateText"),
+    pitchShift: document.getElementById("pitchShift"),
+    pitchText: document.getElementById("pitchText"),
     progress: document.getElementById("progress"),
     miniProgress: document.getElementById("miniProgress"),
     timeNow: document.getElementById("timeNow"),
     timeAll: document.getElementById("timeAll"),
-    miniTimeNow: document.getElementById("miniTimeNow"),
-    miniTimeAll: document.getElementById("miniTimeAll"),
     wave: document.getElementById("wave"),
+    seekbarHeatmap: document.getElementById("seekbarHeatmap"),
     shuffleState: document.getElementById("shuffleState"),
     btnQueueClear: document.getElementById("btnQueueClear"),
     btnQueueShuffle: document.getElementById("btnQueueShuffle"),
-    btnEqSave: document.getElementById("btnEqSave"),
     btnEqReset: document.getElementById("btnEqReset"),
-    btnSideShuffle: document.getElementById("btnSideShuffle"),
-    btnSideRepeat: document.getElementById("btnSideRepeat"),
-    btnFavOnlySide: document.getElementById("btnFavOnlySide"),
     toast: document.getElementById("toast"),
-    queueModal: document.getElementById("queueModal"),
-    eqModal: document.getElementById("eqModal"),
-    timerModal: document.getElementById("timerModal"),
-    statsModal: document.getElementById("statsModal"),
-    statSongs: document.getElementById("statSongs"),
-    statFavs: document.getElementById("statFavs"),
-    statPlays: document.getElementById("statPlays"),
-    statTime: document.getElementById("statTime"),
+    btnThemeSystem: document.getElementById("btnThemeSystem"),
+    btnThemeDark: document.getElementById("btnThemeDark"),
+    btnThemeLight: document.getElementById("btnThemeLight"),
+    btnThemeCustom: document.getElementById("btnThemeCustom"),
+    customThemeArea: document.getElementById("customThemeArea"),
+    gridColor1: document.getElementById("gridColor1"),
+    gridColor2: document.getElementById("gridColor2"),
+    gridTextColor: document.getElementById("gridTextColor"),
+    sliderL1: document.getElementById("sliderL1"),
+    sliderL2: document.getElementById("sliderL2"),
+    sliderLText: document.getElementById("sliderLText"),
+    txtL1: document.getElementById("txtL1"),
+    txtL2: document.getElementById("txtL2"),
+    txtLText: document.getElementById("txtLText"),
+    gradDirectionList: document.getElementById("gradDirectionList"),
+    nowCoverCanvas: document.getElementById("nowCoverCanvas"),
+    btnCrossfade: document.getElementById("btnCrossfade"),
+    btnSilenceSkip: document.getElementById("btnSilenceSkip"),
+    dModeBtns: document.getElementById("dModeBtns"),
+    dModeDesc: document.getElementById("dModeDesc"),
+    pannerSlider: document.getElementById("pannerSlider"),
+    pannerValText: document.getElementById("pannerValText"),
+    newPlName: document.getElementById("newPlName"),
+    btnCreatePl: document.getElementById("btnCreatePl"),
+    playlistContainer: document.getElementById("playlistContainer"),
+    plAlertModal: document.getElementById("plAlertModal"),
+    btnClosePlModal: document.getElementById("btnClosePlModal"),
+    timerStatus: document.getElementById("timerStatus")
   };
 
-  el.search.value = state.search;
-  el.volume.value = loadNum(STORAGE.volume, 1);
-  audio.volume = Number(el.volume.value);
+  function loadJSON(k, f){ try{ const r = localStorage.getItem(k); return r ? JSON.parse(r) : f; }catch{ return f; } }
+  function loadBool(k, f){ const r = localStorage.getItem(k); return r === null ? f : r === "true"; }
+  function loadNum(k, f){ const r = localStorage.getItem(k); const n = Number(r); return Number.isFinite(n) ? n : f; }
+  function loadStr(k, f){ const r = localStorage.getItem(k); return r === null ? f : r; }
 
-  function loadJSON(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch {
-      return fallback;
-    }
-  }
-  function loadBool(key, fallback) {
-    const raw = localStorage.getItem(key);
-    return raw === null ? fallback : raw === "true";
-  }
-  function loadNum(key, fallback) {
-    const raw = localStorage.getItem(key);
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : fallback;
-  }
-  function loadStr(key, fallback) {
-    const raw = localStorage.getItem(key);
-    return raw === null ? fallback : raw;
-  }
-
-  function saveState() {
+  function saveState(){
     localStorage.setItem(STORAGE.favorites, JSON.stringify(state.favorites));
-    localStorage.setItem(STORAGE.order, JSON.stringify(state.order));
     localStorage.setItem(STORAGE.queue, JSON.stringify(state.queue));
     localStorage.setItem(STORAGE.playCounts, JSON.stringify(state.playCounts));
-    localStorage.setItem(STORAGE.listened, JSON.stringify(state.listened));
-    localStorage.setItem(STORAGE.recent, JSON.stringify(state.recent.slice(0, 30)));
     localStorage.setItem(STORAGE.eqState, JSON.stringify(state.eqState));
-    localStorage.setItem(STORAGE.eqCustom, JSON.stringify(state.eqCustom));
-    localStorage.setItem(STORAGE.timer, JSON.stringify(state.timer));
     localStorage.setItem(STORAGE.volume, String(audio.volume));
+    localStorage.setItem(STORAGE.pitch, String(state.pitchSemitones));
     localStorage.setItem(STORAGE.shuffle, String(state.shuffle));
     localStorage.setItem(STORAGE.repeat, String(state.repeat));
-    localStorage.setItem(STORAGE.favoriteOnly, String(state.favoriteOnly));
-    localStorage.setItem(STORAGE.search, state.search);
-    localStorage.setItem(STORAGE.lastSong, state.currentSong?.name || "");
-    localStorage.setItem(STORAGE.lastSongPos, String(audio.currentTime || 0));
-    localStorage.setItem(STORAGE.backStack, JSON.stringify(state.backStack.slice(-120)));
+    localStorage.setItem(STORAGE.favOnly, String(state.favOnly));
+    localStorage.setItem(STORAGE.themeMode, state.themeMode);
+    localStorage.setItem(STORAGE.customTheme, JSON.stringify(state.customTheme));
+    localStorage.setItem(STORAGE.playlists, JSON.stringify(state.playlists));
+    localStorage.setItem(STORAGE.crossfade, String(state.crossfade));
+    localStorage.setItem(STORAGE.silenceSkip, String(state.silenceSkip));
+    localStorage.setItem(STORAGE.dMode, state.dMode);
   }
 
-  function escapeText(s) {
-    return String(s).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[m]));
-  }
-
-  function fmtTime(sec) {
-    if (!Number.isFinite(sec) || sec < 0) return "0:00";
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
+  function fmtTime(sec){
+    if(!Number.isFinite(sec) || sec < 0) return "0:00";
+    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
     return `${m}:${String(s).padStart(2, "0")}`;
   }
-  function fmtLong(sec) {
-    sec = Math.max(0, Math.floor(sec || 0));
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-    return h > 0 ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : fmtTime(sec);
-  }
-  function toast(msg) {
+  function toast(msg){
     el.toast.textContent = msg;
     el.toast.classList.add("show");
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => el.toast.classList.remove("show"), 1200);
-  }
-  function naturalSort(a, b) {
-    return a.name.localeCompare(b.name, "ja", { numeric: true, sensitivity: "base" });
-  }
-  function baseName(name) { return name.replace(/\.[^/.]+$/, ""); }
-  function extOf(name) {
-    const i = name.lastIndexOf(".");
-    return i >= 0 ? name.slice(i + 1).toLowerCase() : "";
-  }
-  function isAudio(file) {
-    return ["mp3","m4a","wav","ogg","flac","aac","webm"].includes(extOf(file.name));
-  }
-  function isImage(file) {
-    return ["png","jpg","jpeg","webp","gif"].includes(extOf(file.name));
-  }
-  function shuffle(arr) {
-    const out = arr.slice();
-    for (let i = out.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [out[i], out[j]] = [out[j], out[i]];
-    }
-    return out;
+    toast._t = setTimeout(() => el.toast.classList.remove("show"), 1400);
   }
 
-  function ensureGraph() {
-    if (audioGraphReady) return;
+  function adjustColorLightness(hex, percent) {
+    let num = parseInt(hex.replace("#",""), 16);
+    if (isNaN(num)) return hex;
+    let r = (num >> 16), g = ((num >> 8) & 0x00FF), b = (num & 0x0000FF);
+    if (percent > 100) {
+      let p = (percent - 100) / 100;
+      r = Math.round(r + (255 - r) * p);
+      g = Math.round(g + (255 - g) * p);
+      b = Math.round(b + (255 - b) * p);
+    } else {
+      let p = percent / 100;
+      r = Math.round(r * p);
+      g = Math.round(g * p);
+      b = Math.round(b * p);
+    }
+    return `rgb(${Math.min(255, Math.max(0, r))}, ${Math.min(255, Math.max(0, g))}, ${Math.min(255, Math.max(0, b))})`;
+  }
+
+  function ensureGraph(){
+    if(audioGraphReady) return;
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       sourceNode = audioCtx.createMediaElementSource(audio);
-      filters = EQ_BANDS.map((band, i) => {
-        const f = audioCtx.createBiquadFilter();
-        f.type = band.type;
-        f.frequency.value = band.freq;
-        f.Q.value = 1.0;
-        f.gain.value = Number(state.eqState.gains?.[i] || 0);
-        return f;
+      
+      const freqs = [60, 250, 1000, 4000, 12000];
+      filters = freqs.map((f, i) => {
+        const node = audioCtx.createBiquadFilter();
+        node.type = i === 0 ? "lowshelf" : i === 4 ? "highshelf" : "peaking";
+        node.frequency.value = f;
+        node.gain.value = Number(state.eqState.gains[i] || 0);
+        return node;
       });
+
+      if (audioCtx.createStereoPanner) {
+        pannerNode = audioCtx.createStereoPanner();
+        pannerNode.pan.value = state.panValue;
+      }
+
+      if (audioCtx.createPanner) {
+        panner3DNode = audioCtx.createPanner();
+        panner3DNode.panningModel = 'HRTF';
+        panner3DNode.distanceModel = 'inverse';
+        if (panner3DNode.positionX) {
+          panner3DNode.positionX.value = 0;
+          panner3DNode.positionY.value = 0;
+          panner3DNode.positionZ.value = 0;
+        } else {
+          panner3DNode.setPosition(0, 0, 0);
+        }
+      }
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = audio.volume;
+
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
+      analyser.fftSize = 256;
       analyserData = new Uint8Array(analyser.frequencyBinCount);
-      analyserSmooth = new Array(analyser.frequencyBinCount).fill(0);
 
       sourceNode.connect(filters[0]);
-      for (let i = 0; i < filters.length - 1; i++) filters[i].connect(filters[i + 1]);
-      filters[filters.length - 1].connect(analyser);
-      analyser.connect(audioCtx.destination);
-      audioGraphReady = true;
-    } catch (e) {
-      console.warn(e);
-      audioGraphReady = false;
-    }
-  }
-  async function resumeAudioContext() {
-    ensureGraph();
-    if (audioCtx && audioCtx.state === "suspended") {
-      try { await audioCtx.resume(); } catch {}
-    }
-  }
-  function applyEq() {
-    if (!filters.length) return;
-    EQ_BANDS.forEach((b, i) => {
-      const g = Number(state.eqState.gains?.[i] || 0);
-      filters[i].gain.value = g;
-      const slider = document.querySelector(`input[data-eq="${i}"]`);
-      const val = document.querySelector(`[data-eqvalue="${i}"]`);
-      if (slider) slider.value = String(g);
-      if (val) val.textContent = `${g} dB`;
-    });
-  }
-  function animateEqTo(target) {
-    state.eqState.gains = target.slice();
-    state.eqState.preset = "Custom";
-    const start = filters.map(f => Number(f.gain.value || 0));
-    const t0 = performance.now();
-    const dur = 180;
-    const step = now => {
-      const p = Math.min(1, (now - t0) / dur);
-      for (let i = 0; i < filters.length; i++) {
-        const v = start[i] + (target[i] - start[i]) * p;
-        filters[i].gain.value = v;
-        const slider = document.querySelector(`input[data-eq="${i}"]`);
-        const val = document.querySelector(`[data-eqvalue="${i}"]`);
-        if (slider) slider.value = String(Math.round(v));
-        if (val) val.textContent = `${Math.round(v)} dB`;
+      for(let i=0; i<filters.length-1; i++) filters[i].connect(filters[i+1]);
+      
+      let lastFilter = filters[filters.length-1];
+      if (pannerNode && panner3DNode) {
+        lastFilter.connect(pannerNode);
+        pannerNode.connect(panner3DNode);
+        lastFilter = panner3DNode;
+      } else if (pannerNode) {
+        lastFilter.connect(pannerNode);
+        lastFilter = pannerNode;
+      } else if (panner3DNode) {
+        lastFilter.connect(panner3DNode);
+        lastFilter = panner3DNode;
       }
-      if (p < 1) requestAnimationFrame(step);
-      else {
-        saveState();
-        updateEqPresetButtons();
+
+      lastFilter.connect(masterGain);
+      masterGain.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      audioGraphReady = true;
+    } catch(e) {}
+  }
+
+  async function resumeAudioCtx(){
+    ensureGraph();
+    if(audioCtx && audioCtx.state === "suspended"){
+      try { await audioCtx.resume(); } catch{}
+    }
+  }
+
+  function applyPitchAndRate(){
+    const pitchFactor = Math.pow(2, state.pitchSemitones / 12);
+    audio.playbackRate = currentRate * pitchFactor;
+    audio.preservesPitch = false;
+    el.rateText.textContent = `${currentRate.toFixed(2)}x`;
+    el.pitchText.textContent = state.pitchSemitones > 0 ? `+${state.pitchSemitones}` : `${state.pitchSemitones}`;
+  }
+
+  function updateSpatialAudio() {
+    if (!audioCtx || !panner3DNode || audio.paused) return;
+    spatialAngle += 0.025;
+    const t = spatialAngle;
+    let x = 0, y = 0, z = 0;
+
+    const setPos = (px, py, pz) => {
+      if (panner3DNode.positionX) {
+        panner3DNode.positionX.value = px;
+        panner3DNode.positionY.value = py;
+        panner3DNode.positionZ.value = pz;
+      } else {
+        panner3DNode.setPosition(px, py, pz);
       }
     };
-    requestAnimationFrame(step);
-  }
-  function setEqPreset(name) {
-    const gains = EQ_PRESETS[name] ? EQ_PRESETS[name].slice() : [0,0,0,0,0];
-    state.eqState.preset = name;
-    animateEqTo(gains);
-    toast(`EQ: ${name}`);
-  }
-  function setEqGain(i, val) {
-    state.eqState.preset = "Custom";
-    state.eqState.gains[i] = Number(val);
-    if (filters[i]) filters[i].gain.value = Number(val);
-    const txt = document.querySelector(`[data-eqvalue="${i}"]`);
-    if (txt) txt.textContent = `${Number(val)} dB`;
-    updateEqPresetButtons();
-    saveState();
-  }
-  function updateEqPresetButtons() {
-    document.querySelectorAll("[data-eqpreset]").forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.eqpreset === state.eqState.preset);
-    });
-  }
 
-  function getVisibleSongs() {
-    let list = state.playlist.slice();
-    if (state.search) {
-      const q = state.search.toLowerCase();
-      list = list.filter(s => s.name.toLowerCase().includes(q));
+    switch (state.dMode) {
+      case "3D":
+        x = state.panValue * 2;
+        y = 0;
+        z = 1;
+        setPos(x, y, z);
+        break;
+
+      case "4D":
+        x = Math.sin(t * 0.4) * 2.5;
+        y = Math.sin(t * 0.8) * 1.2;
+        z = Math.cos(t * 0.4) * 2.5;
+        setPos(x, y, z);
+        break;
+
+      case "8D":
+        const radius8D = 3.2;
+        x = Math.sin(t) * radius8D;
+        y = 0;
+        z = Math.cos(t) * radius8D;
+        setPos(x, y, z);
+        break;
+
+      case "16D":
+        const radius16D = 3.5;
+        x = Math.sin(t * 1.2) * radius16D;
+        y = Math.sin(t * 2.4) * 1.8;
+        z = Math.cos(t * 0.7) * radius16D;
+        setPos(x, y, z);
+        break;
+
+      case "2D":
+      default:
+        setPos(0, 0, 0);
+        break;
     }
-    if (state.favoriteOnly) list = list.filter(s => state.favorites.includes(s.name));
-    const orderMap = new Map(state.order.map((n, i) => [n, i]));
-    list.sort((a, b) => {
-      const ai = orderMap.has(a.name) ? orderMap.get(a.name) : 999999;
-      const bi = orderMap.has(b.name) ? orderMap.get(b.name) : 999999;
-      if (ai !== bi) return ai - bi;
-      return naturalSort(a, b);
-    });
-    return list;
-  }
-  function getSongByName(name) {
-    return state.playlist.find(s => s.name === name) || null;
   }
 
-  function commitOrderFromPlaylist() {
-    state.order = state.playlist.map(s => s.name);
+  function setDMode(mode) {
+    state.dMode = mode;
     saveState();
-  }
+    
+    const descriptions = {
+      "2D": "2D: 標準ステレオ再生",
+      "3D": "3D: 左右パン連動の固定立体音響",
+      "4D": "4D: 前後左右＋上下の緩やかな空間揺らぎ",
+      "8D": "8D: 頭の周りを360度全方位回転",
+      "16D": "16D: 高度なマルチトラック8の字立体周回"
+    };
+    if (el.dModeDesc) el.dModeDesc.textContent = descriptions[mode] || descriptions["2D"];
 
-  function loadFiles(fileList) {
-    const files = Array.from(fileList || []);
-    const audioByBase = new Map();
-    const coverByBase = new Map();
-
-    files.forEach(f => {
-      const bn = baseName(f.name);
-      if (isAudio(f)) {
-        if (!audioByBase.has(bn)) audioByBase.set(bn, { name: bn, url: "", coverUrl: "", fileName: f.name });
-        audioByBase.get(bn).url = URL.createObjectURL(f);
-      } else if (isImage(f)) {
-        coverByBase.set(bn, URL.createObjectURL(f));
-      }
-    });
-
-    state.playlist = Array.from(audioByBase.values()).filter(s => s.url).map(s => {
-      if (coverByBase.has(s.name)) s.coverUrl = coverByBase.get(s.name);
-      return s;
-    }).sort(naturalSort);
-
-    if (!state.order.length) commitOrderFromPlaylist();
-    else {
-      const orderMap = new Map(state.order.map((n, i) => [n, i]));
-      state.playlist.sort((a, b) => {
-        const ai = orderMap.has(a.name) ? orderMap.get(a.name) : 999999;
-        const bi = orderMap.has(b.name) ? orderMap.get(b.name) : 999999;
-        if (ai !== bi) return ai - bi;
-        return naturalSort(a, b);
+    if (el.dModeBtns) {
+      el.dModeBtns.querySelectorAll("button").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.d === mode);
       });
     }
 
-    saveState();
-    renderAll();
-
-    const last = loadStr(STORAGE.lastSong, "");
-    if (last) {
-      const s = getSongByName(last);
-      if (s) {
-        state.currentSong = s;
-        audio.src = s.url;
-        state.pendingSeek = loadNum(STORAGE.lastSongPos, 0);
-        updateNowPlayingUI(s);
-      }
-    }
-    toast("読み込み完了");
-  }
-
-  function updateHeader() {
-    const visible = getVisibleSongs();
-    el.songCount.textContent = `${visible.length}曲`;
-    el.favCount.textContent = `${state.favorites.length}お気に入り`;
-    el.queueCount.textContent = `${state.queue.length}キュー`;
-    el.listHint.textContent = visible.length
-      ? (state.favoriteOnly ? "お気に入りだけ表示中" : state.search ? `検索結果 ${visible.length}曲` : "タップで再生、ダブルタップでキュー追加")
-      : (state.playlist.length ? "該当する曲がないよ" : "まだ読み込み前");
-    el.shuffleState.textContent = `シャッフル: ${state.shuffle ? "ON" : "OFF"}`;
-    el.btnShuffle.textContent = state.shuffle ? "シャッフル ON" : "シャッフル OFF";
-    el.btnRepeat.textContent = state.repeat ? "リピート ON" : "リピート OFF";
-    el.btnFavOnly.textContent = state.favoriteOnly ? "お気に入りのみ ON" : "お気に入りのみ";
-    el.btnSideShuffle.textContent = state.shuffle ? "シャッフル ON" : "シャッフル OFF";
-    el.btnSideRepeat.textContent = state.repeat ? "リピート ON" : "リピート OFF";
-    el.btnFavOnlySide.textContent = state.favoriteOnly ? "お気に入りのみ ON" : "お気に入りのみ";
-  }
-
-  function updateNowPlayingUI(song) {
-    if (song) {
-      el.nowTitle.textContent = song.name;
-      el.miniTitle.textContent = song.name;
-      el.nowSub.textContent = state.favorites.includes(song.name) ? "お気に入り" : "再生中";
-      el.miniSub.textContent = state.favorites.includes(song.name) ? "お気に入り" : "再生中";
-      el.btnFav.textContent = state.favorites.includes(song.name) ? "★" : "☆";
-      el.btnFav.classList.toggle("active", state.favorites.includes(song.name));
-      if (song.coverUrl) {
-        el.nowCover.src = song.coverUrl;
-        el.nowCover.style.display = "block";
-        el.coverFallback.style.display = "none";
+    if (mode === "2D" && panner3DNode) {
+      if (panner3DNode.positionX) {
+        panner3DNode.positionX.value = 0;
+        panner3DNode.positionY.value = 0;
+        panner3DNode.positionZ.value = 0;
       } else {
-        el.nowCover.removeAttribute("src");
-        el.nowCover.style.display = "none";
-        el.coverFallback.style.display = "flex";
+        panner3DNode.setPosition(0, 0, 0);
       }
-    } else {
-      el.nowTitle.textContent = "未再生";
-      el.miniTitle.textContent = "停止中";
-      el.nowSub.textContent = "フォルダを選ぶと曲一覧が出る";
-      el.miniSub.textContent = "まだ再生していない";
-      el.btnFav.textContent = "☆";
-      el.btnFav.classList.remove("active");
-      el.nowCover.removeAttribute("src");
-      el.nowCover.style.display = "none";
-      el.coverFallback.style.display = "flex";
     }
-    document.querySelectorAll(".song, .queueItem").forEach(node => {
-      node.classList.toggle("current", node.dataset.name === song?.name);
-      node.classList.toggle("active", node.dataset.name === song?.name);
+  }
+
+  if (el.dModeBtns) {
+    el.dModeBtns.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => setDMode(btn.dataset.d));
     });
   }
 
-  function updateProgressUI() {
-    const dur = audio.duration || 0;
-    const cur = audio.currentTime || 0;
-    const pct = dur ? (cur / dur) * 100 : 0;
-    el.progress.value = String(pct);
-    el.miniProgress.value = String(pct);
-    el.timeNow.textContent = fmtTime(cur);
-    el.timeAll.textContent = fmtTime(dur);
-    el.miniTimeNow.textContent = fmtTime(cur);
-    el.miniTimeAll.textContent = fmtTime(dur);
+  function applyTheme(){
+    document.body.classList.remove("theme-light");
+    [el.btnThemeSystem, el.btnThemeDark, el.btnThemeLight, el.btnThemeCustom].forEach(b => b?.classList.remove("active"));
+    el.customThemeArea.style.display = "none";
+
+    let activeMode = state.themeMode;
+    if(activeMode === "system"){
+      el.btnThemeSystem.classList.add("active");
+      const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      activeMode = isSystemDark ? "dark" : "light";
+    }
+
+    if(activeMode === "light"){
+      document.body.classList.add("theme-light");
+      document.body.style.background = "";
+      document.body.style.color = "";
+      if(state.themeMode === "light") el.btnThemeLight.classList.add("active");
+    } else if(activeMode === "custom"){
+      el.btnThemeCustom.classList.add("active");
+      el.customThemeArea.style.display = "block";
+
+      const { c1, l1, c2, l2, text, lText, dir } = state.customTheme;
+      const computedC1 = adjustColorLightness(c1 || "#1d3557", l1 !== undefined ? l1 : 100);
+      const computedC2 = adjustColorLightness(c2 || "#121212", l2 !== undefined ? l2 : 100);
+      const computedText = adjustColorLightness(text || "#ffffff", lText !== undefined ? lText : 100);
+
+      document.body.style.background = `linear-gradient(${dir || "180deg"}, ${computedC1} 0%, ${computedC2} 100%)`;
+      document.body.style.backgroundAttachment = "fixed";
+      document.body.style.color = computedText;
+    } else {
+      document.body.style.background = "";
+      document.body.style.color = "";
+      if(state.themeMode === "dark") el.btnThemeDark.classList.add("active");
+    }
   }
 
-  function setRecent(name) {
-    state.recent = state.recent.filter(n => n !== name);
-    state.recent.unshift(name);
-    state.recent = state.recent.slice(0, 20);
-  }
-  function addPlayStats(song, delta) {
-    if (!song || delta <= 0) return;
-    state.listened[song.name] = (state.listened[song.name] || 0) + delta;
-  }
-  function incrementPlayCount(name) {
-    state.playCounts[name] = (state.playCounts[name] || 0) + 1;
-    setRecent(name);
-    saveState();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if(state.themeMode === "system") applyTheme();
+  });
+
+  function renderColorPickers(){
+    const targets = [
+      { grid: el.gridColor1, key: "c1" },
+      { grid: el.gridColor2, key: "c2" },
+      { grid: el.gridTextColor, key: "text" }
+    ];
+
+    targets.forEach(({ grid, key }) => {
+      grid.innerHTML = "";
+      const current = state.customTheme[key];
+      COLOR_PALETTE_12.forEach(color => {
+        const dot = document.createElement("div");
+        dot.className = "colorDot" + (current === color ? " selected" : "");
+        dot.style.background = color;
+        dot.addEventListener("click", () => {
+          state.customTheme[key] = color;
+          saveState();
+          applyTheme();
+          renderColorPickers();
+        });
+        grid.appendChild(dot);
+      });
+    });
+
+    el.sliderL1.value = state.customTheme.l1 !== undefined ? state.customTheme.l1 : 100;
+    el.sliderL2.value = state.customTheme.l2 !== undefined ? state.customTheme.l2 : 100;
+    el.sliderLText.value = state.customTheme.lText !== undefined ? state.customTheme.lText : 100;
+    el.txtL1.textContent = `${el.sliderL1.value}%`;
+    el.txtL2.textContent = `${el.sliderL2.value}%`;
+    el.txtLText.textContent = `${el.sliderLText.value}%`;
+
+    document.querySelectorAll(".gradOption").forEach(opt => {
+      opt.classList.toggle("selected", opt.dataset.deg === (state.customTheme.dir || "180deg"));
+    });
   }
 
-  function renderEq() {
+  document.querySelectorAll(".gradOption").forEach(opt => {
+    opt.addEventListener("click", () => {
+      state.customTheme.dir = opt.dataset.deg;
+      saveState();
+      applyTheme();
+      renderColorPickers();
+    });
+  });
+
+  [{ slider: el.sliderL1, txt: el.txtL1, key: "l1" },
+   { slider: el.sliderL2, txt: el.txtL2, key: "l2" },
+   { slider: el.sliderLText, txt: el.txtLText, key: "lText" }].forEach(({ slider, txt, key }) => {
+    slider.addEventListener("input", () => {
+      const val = Number(slider.value);
+      state.customTheme[key] = val;
+      txt.textContent = `${val}%`;
+      saveState();
+      applyTheme();
+    });
+  });
+
+  function renderEqualizer(){
     el.eqPresetRow.innerHTML = "";
-    Object.keys(EQ_PRESETS).forEach(name => {
-      const btn = document.createElement("button");
-      btn.className = "btn small" + (state.eqState.preset === name ? " active" : "");
-      btn.textContent = name;
-      btn.dataset.eqpreset = name;
-      btn.addEventListener("click", () => setEqPreset(name));
-      el.eqPresetRow.appendChild(btn);
+    Object.keys(EQ_PRESETS).forEach(pName => {
+      const b = document.createElement("button");
+      b.className = "btn small" + (state.eqState.preset === pName ? " active" : "");
+      b.textContent = pName;
+      b.addEventListener("click", () => {
+        state.eqState.preset = pName;
+        state.eqState.gains = [...EQ_PRESETS[pName]];
+        applyEqGains();
+        saveState();
+        renderEqualizer();
+      });
+      el.eqPresetRow.appendChild(b);
     });
 
     el.eqBands.innerHTML = "";
-    EQ_BANDS.forEach((band, i) => {
-      const box = document.createElement("div");
-      box.className = "vBand";
-      box.innerHTML = `
-        <div class="vLabel">${band.label}</div>
+    const labels = ["60Hz", "250Hz", "1kHz", "4kHz", "12kHz"];
+    labels.forEach((lbl, idx) => {
+      const gainVal = Number(state.eqState.gains[idx] || 0);
+      const vBand = document.createElement("div");
+      vBand.className = "vBand";
+      vBand.innerHTML = `
+        <div class="vVal">${gainVal > 0 ? "+" + gainVal : gainVal}dB</div>
         <div class="vTrack">
-          <input class="vSlider" type="range" min="-12" max="12" step="1" value="${Number(state.eqState.gains?.[i] || 0)}" data-eq="${i}">
+          <input type="range" class="vSlider" min="-12" max="12" step="0.5" value="${gainVal}">
         </div>
-        <div class="vValue" data-eqvalue="${i}">${Number(state.eqState.gains?.[i] || 0)} dB</div>
+        <span style="font-size:.75rem; color:var(--muted); margin-top:4px">${lbl}</span>
       `;
-      box.querySelector("input").addEventListener("input", e => setEqGain(i, e.target.value));
-      el.eqBands.appendChild(box);
+      const slider = vBand.querySelector(".vSlider");
+      const valDisp = vBand.querySelector(".vVal");
+
+      slider.addEventListener("input", () => {
+        const v = Number(slider.value);
+        state.eqState.preset = "Custom";
+        state.eqState.gains[idx] = v;
+        valDisp.textContent = (v > 0 ? "+" + v : v) + "dB";
+        applyEqGains();
+        saveState();
+      });
+      el.eqBands.appendChild(vBand);
     });
-    updateEqPresetButtons();
   }
 
-  function saveCustomEq() {
-    const name = (el.eqName.value || "").trim();
-    if (!name) return toast("名前を入れてね");
-    state.eqCustom[name] = state.eqState.gains.slice();
+  function applyEqGains(){
+    if(!filters.length) return;
+    state.eqState.gains.forEach((g, i) => {
+      if(filters[i]) filters[i].gain.value = g;
+    });
+  }
+
+  el.btnEqReset.addEventListener("click", () => {
+    state.eqState.preset = "Normal";
+    state.eqState.gains = [0,0,0,0,0];
+    applyEqGains();
     saveState();
-    toast(`"${name}" を保存`);
-  }
-  function resetEq() {
-    setEqPreset("Normal");
-    el.eqName.value = "";
-  }
+    renderEqualizer();
+  });
 
-  function renderQueue() {
-    el.queueList.innerHTML = "";
-    if (!state.queue.length) {
-      const empty = document.createElement("div");
-      empty.className = "notice";
-      empty.textContent = "キューは空だよ";
-      el.queueList.appendChild(empty);
+  function updateArtwork(song) {
+    const canvas = el.nowCoverCanvas;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, 320, 320);
+
+    if (song?.coverUrl) {
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, 320, 320);
+      img.src = song.coverUrl;
       return;
     }
-    state.queue.forEach((name, idx) => {
-      const song = getSongByName(name) || { name };
-      const item = document.createElement("div");
-      item.className = "queueItem" + (state.currentSong?.name === name ? " current" : "");
-      item.dataset.name = name;
-      item.innerHTML = `
-        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
-        <div class="qTitle">${escapeText(song.name)}</div>
-        <button class="qBtn" data-action="play">再生</button>
-        <button class="qBtn" data-action="remove">✕</button>
-      `;
-      item.querySelector('[data-action="play"]').addEventListener("click", () => playSongByName(name, { pushHistory: true }));
-      item.querySelector('[data-action="remove"]').addEventListener("click", () => removeFromQueue(idx));
-      el.queueList.appendChild(item);
+
+    ctx.fillStyle = "rgba(35, 35, 40, 0.9)";
+    ctx.fillRect(0, 0, 320, 320);
+    ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+    ctx.font = "bold 48px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("NO IMAGE", 160, 160);
+  }
+
+  el.btnResetFiles.addEventListener("click", () => {
+    if (!confirm("保存された全トラックを削除しますか？")) return;
+    if (db) {
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").clear();
+    }
+    state.playlist = [];
+    state.currentSong = null;
+    state.queue = [];
+    audio.pause();
+    audio.src = "";
+    el.folder.value = "";
+    updateArtwork(null);
+    el.nowTitle.textContent = "未再生";
+    el.nowSub.textContent = "ファイルをドロップまたは選択してください";
+    saveState();
+    renderAll();
+    toast("全ファイルをリセットしました");
+  });
+
+  async function loadFiles(fileList){
+    const files = Array.from(fileList || []);
+    const audioFiles = files.filter(f => f.type.startsWith("audio/") || /\.(mp3|m4a|wav|ogg|flac|aac)$/i.test(f.name));
+    if(!audioFiles.length) return;
+
+    toast(`${audioFiles.length}曲の解析・読み込み中...`);
+
+    for (const f of audioFiles) {
+      const meta = await parseID3(f);
+      saveTrackToDB({
+        name: f.name,
+        title: meta.title,
+        artist: meta.artist,
+        blob: f,
+        coverBlob: meta.coverBlob
+      });
+    }
+
+    await reloadPlaylistFromDB();
+    toast(`${audioFiles.length}曲の登録完了！`);
+  }
+
+  async function reloadPlaylistFromDB() {
+    const tracks = await loadTracksFromDB();
+    state.playlist = tracks.map(t => ({
+      name: t.name,
+      title: t.title || t.name,
+      artist: t.artist || "不明なアーティスト",
+      url: URL.createObjectURL(t.blob),
+      coverUrl: t.coverBlob ? URL.createObjectURL(t.coverBlob) : null
+    })).sort((a,b) => a.title.localeCompare(b.title, "ja", {numeric:true}));
+    renderAll();
+  }
+
+  async function deleteSingleTrack(song) {
+    if(!song) return;
+    if(!confirm(`「${song.title}」を削除しますか？`)) return;
+
+    await deleteTrackFromDB(song.name);
+    
+    if (state.currentSong?.name === song.name) {
+      audio.pause();
+      audio.src = "";
+      state.currentSong = null;
+      updateArtwork(null);
+      el.nowTitle.textContent = "未再生";
+      el.nowSub.textContent = "ファイルをドロップまたは選択してください";
+    }
+
+    state.queue = state.queue.filter(q => q !== song.name);
+    state.favorites = state.favorites.filter(f => f !== song.name);
+    
+    await reloadPlaylistFromDB();
+    toast("曲を削除しました");
+  }
+
+  function getVisibleSongs(){
+    let list = state.playlist.slice();
+    if(state.search){
+      const q = state.search.toLowerCase();
+      list = list.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+    }
+    if(state.favOnly) list = list.filter(s => state.favorites.includes(s.name));
+    return list;
+  }
+
+  function playSong(song, pushHistory = true){
+    if(!song) return;
+    ensureGraph();
+    
+    if(state.crossfade && audio.src && !audio.paused && masterGain) {
+      masterGain.gain.setTargetAtTime(0.001, audioCtx.currentTime, 0.15);
+      setTimeout(() => startNewSong(song, pushHistory), 200);
+    } else {
+      startNewSong(song, pushHistory);
+    }
+  }
+
+  function startNewSong(song, pushHistory) {
+    state.currentSong = song;
+    audio.src = song.url;
+    applyPitchAndRate();
+    
+    if(masterGain && audioCtx) {
+      masterGain.gain.setTargetAtTime(Number(el.volume.value), audioCtx.currentTime, 0.08);
+    }
+
+    if(pushHistory) {
+      if(historyIndex === -1 || historyStack[historyIndex]?.name !== song.name) {
+        historyStack.splice(historyIndex + 1);
+        historyStack.push(song);
+        historyIndex = historyStack.length - 1;
+      }
+    }
+
+    updateArtwork(song);
+    updateNowPlayingUI(song);
+    resumeAudioCtx();
+    audio.play().catch(()=>{});
+    state.playCounts[song.name] = (state.playCounts[song.name] || 0) + 1;
+    saveState();
+  }
+
+  function updatePlayPauseUI(){
+    const isPlaying = !audio.paused && audio.src;
+    el.btnPlay.textContent = isPlaying ? "❚❚ 一時停止" : "▶ 再生";
+    el.miniPlay.textContent = isPlaying ? "❚❚" : "▶";
+    el.btnPlay.classList.toggle("playing", isPlaying);
+    el.miniPlay.classList.toggle("playing", isPlaying);
+  }
+
+  function updateNowPlayingUI(song){
+    if(song){
+      el.nowTitle.textContent = song.title;
+      el.miniTitle.textContent = song.title;
+      el.nowSub.textContent = song.artist;
+      el.miniSub.textContent = song.artist;
+      el.btnFav.textContent = state.favorites.includes(song.name) ? "★" : "☆";
+      el.btnFav.classList.toggle("active", state.favorites.includes(song.name));
+
+      if ('mediaSession' in navigator) {
+        const metadataInit = {
+          title: song.title || 'Unknown Title',
+          artist: song.artist || 'Unknown Artist'
+        };
+        if (song.coverUrl) {
+          metadataInit.artwork = [{ src: song.coverUrl, sizes: '512x512', type: 'image/png' }];
+        }
+        navigator.mediaSession.metadata = new MediaMetadata(metadataInit);
+      }
+    }
+    document.querySelectorAll(".song").forEach(n => {
+      n.classList.toggle("active", n.dataset.name === song?.name);
     });
-    attachSortable(el.queueList, order => {
-      state.queue = order;
+    updatePlayPauseUI();
+    renderSeekbarHeatmap();
+  }
+
+  function playPause(){
+    if(!state.currentSong && state.playlist.length) return playSong(getVisibleSongs()[0]);
+    if(audio.paused) audio.play().catch(()=>{});
+    else audio.pause();
+    updatePlayPauseUI();
+  }
+
+  function prevTrack(){
+    if(historyIndex > 0) {
+      historyIndex--;
+      playSong(historyStack[historyIndex], false);
+    } else {
+      const vis = getVisibleSongs();
+      if(!vis.length) return;
+      const idx = vis.findIndex(s => s.name === state.currentSong?.name);
+      playSong(vis[(idx - 1 + vis.length) % vis.length]);
+    }
+  }
+
+  function nextTrack(){
+    if(historyIndex < historyStack.length - 1) {
+      historyIndex++;
+      playSong(historyStack[historyIndex], false);
+      return;
+    }
+
+    const vis = getVisibleSongs();
+    if(!vis.length) return;
+    if(state.queue.length){
+      const name = state.queue.shift();
       saveState();
       renderQueue();
-      updateHeader();
+      const s = state.playlist.find(x => x.name === name);
+      if(s) return playSong(s);
+    }
+    if(state.shuffle){
+      const next = vis[Math.floor(Math.random() * vis.length)];
+      return playSong(next);
+    }
+    const idx = vis.findIndex(s => s.name === state.currentSong?.name);
+    playSong(vis[(idx + 1) % vis.length]);
+  }
+
+  el.volume.addEventListener("input", () => {
+    const targetVol = Number(el.volume.value);
+    audio.volume = targetVol;
+    el.volText.textContent = `${Math.round(targetVol * 100)}%`;
+    if(masterGain && audioCtx) {
+      masterGain.gain.setTargetAtTime(targetVol, audioCtx.currentTime, 0.05);
+    }
+    saveState();
+  });
+
+  function showPlAlertModal() {
+    el.plAlertModal.classList.add("show");
+  }
+  function hidePlAlertModal() {
+    el.plAlertModal.classList.remove("show");
+  }
+
+  el.btnClosePlModal.addEventListener("click", hidePlAlertModal);
+  el.plAlertModal.addEventListener("click", e => {
+    if(e.target === el.plAlertModal) hidePlAlertModal();
+  });
+
+  function createPlaylist() {
+    const name = el.newPlName.value.trim();
+    if(!name) {
+      showPlAlertModal();
+      return;
+    }
+    if(!state.playlists[name]) state.playlists[name] = [];
+    el.newPlName.value = "";
+    saveState();
+    renderPlaylists();
+    toast(`プレイリスト「${name}」を作成しました`);
+  }
+
+  el.btnCreatePl.addEventListener("click", createPlaylist);
+  el.newPlName.addEventListener("keydown", e => {
+    if(e.key === "Enter") {
+      e.preventDefault();
+      createPlaylist();
+    }
+  });
+
+  function renderPlaylists(){
+    el.playlistContainer.innerHTML = "";
+    const names = Object.keys(state.playlists);
+    if(!names.length) {
+      el.playlistContainer.innerHTML = `<div style="color:var(--muted); font-size:.86rem">プレイリストがありません</div>`;
+      return;
+    }
+    names.forEach(pName => {
+      const card = document.createElement("div");
+      card.className = "sectionCard";
+      
+      const tracksInPl = state.playlists[pName];
+      const listDiv = document.createElement("div");
+      listDiv.style.cssText = "display:flex; flex-direction:column; gap:2px; margin-top:6px; border-top:1px solid var(--line); padding-top:6px;";
+
+      if (!tracksInPl.length) {
+        listDiv.innerHTML = `<div style="color:var(--muted); font-size:.78rem">曲がありません</div>`;
+      } else {
+        tracksInPl.forEach((songName, idx) => {
+          const found = state.playlist.find(x => x.name === songName);
+          const row = document.createElement("div");
+          row.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:4px 0; font-size:.84rem;";
+          row.innerHTML = `
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">
+              ${!found ? '<span style="color:#f8d25c; margin-right:4px;" title="ファイルが見つかりません">▲</span>' : ''}
+              ${found ? found.title : songName.replace(/\.(mp3|m4a|wav|ogg|flac|aac)$/i, '')}
+            </span>
+            <button class="btn small ghost removePlSongBtn" style="padding:2px 6px;">✕</button>
+          `;
+          row.querySelector(".removePlSongBtn").addEventListener("click", () => {
+            state.playlists[pName].splice(idx, 1);
+            saveState();
+            renderPlaylists();
+          });
+          listDiv.appendChild(row);
+        });
+      }
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:700; cursor:pointer;" class="plTitleText">${pName} (${tracksInPl.length}曲)</div>
+          <div>
+            <button class="btn small renamePlBtn">名前変更</button>
+            <button class="btn small playPlBtn">▶ 再生</button>
+            <button class="btn small ghost delPlBtn">✕</button>
+          </div>
+        </div>
+      `;
+      card.appendChild(listDiv);
+
+      card.querySelector(".playPlBtn").addEventListener("click", () => {
+        const songObjects = state.playlists[pName].map(n => state.playlist.find(x => x.name === n)).filter(Boolean);
+        if(songObjects.length) playSong(songObjects[0]);
+      });
+
+      card.querySelector(".renamePlBtn").addEventListener("click", () => {
+        const newName = prompt("新しいプレイリスト名を入力してください:", pName);
+        if(newName && newName.trim() && newName !== pName) {
+          state.playlists[newName.trim()] = state.playlists[pName];
+          delete state.playlists[pName];
+          saveState();
+          renderPlaylists();
+        }
+      });
+
+      card.querySelector(".delPlBtn").addEventListener("click", () => {
+        delete state.playlists[pName];
+        saveState();
+        renderPlaylists();
+      });
+
+      el.playlistContainer.appendChild(card);
     });
   }
 
-  function addToQueue(name) {
-    if (!name) return;
+  function addSongToPlaylist(songName) {
+    const plNames = Object.keys(state.playlists);
+    if(!plNames.length) {
+      toast("先にプレイリストを作成してください");
+      return;
+    }
+    const targetPl = prompt(`追加先のプレイリスト名を入力してください:\n(${plNames.join(", ")})`);
+    if(targetPl && state.playlists[targetPl]) {
+      state.playlists[targetPl].push(songName);
+      saveState();
+      renderPlaylists();
+      toast(`「${targetPl}」に追加しました`);
+    } else if(targetPl) {
+      toast("指定されたプレイリストが存在しません");
+    }
+  }
+
+  function renderSongList(){
+    const vis = getVisibleSongs();
+    el.list.innerHTML = "";
+    vis.forEach(song => {
+      const row = document.createElement("div");
+      row.className = "song" + (song.name === state.currentSong?.name ? " active" : "");
+      row.dataset.name = song.name;
+      row.innerHTML = `
+        <div class="songMain">
+          <div class="songName">${song.title}</div>
+          <div class="songArtist">${song.artist}</div>
+          <div class="songMeta">再生数 ${state.playCounts[song.name] || 0}回</div>
+        </div>
+        <div class="songRight">
+          <button class="addPlBtn">リスト追加</button>
+          <button class="queueBtn">＋キュー</button>
+          <button class="starBtn${state.favorites.includes(song.name) ? " active" : ""}">${state.favorites.includes(song.name) ? "★" : "☆"}</button>
+          <button class="delTrackBtn">🗑</button>
+        </div>
+      `;
+      row.querySelector(".addPlBtn").addEventListener("click", e => { e.stopPropagation(); addSongToPlaylist(song.name); });
+      row.querySelector(".queueBtn").addEventListener("click", e => { e.stopPropagation(); addToQueue(song.name); });
+      row.querySelector(".starBtn").addEventListener("click", e => { e.stopPropagation(); toggleFav(song.name); });
+      row.querySelector(".delTrackBtn").addEventListener("click", e => { e.stopPropagation(); deleteSingleTrack(song); });
+      row.addEventListener("click", () => playSong(song));
+      el.list.appendChild(row);
+    });
+  }
+
+  function addToQueue(name){
     state.queue.push(name);
     saveState();
     renderQueue();
-    updateHeader();
-    toast("キューに追加");
-  }
-  function removeFromQueue(index) {
-    state.queue.splice(index, 1);
-    saveState();
-    renderQueue();
-    updateHeader();
-    toast("キューから削除");
-  }
-  function clearQueue() {
-    state.queue = [];
-    saveState();
-    renderQueue();
-    updateHeader();
-    toast("キューを消去");
-  }
-  function shuffleQueueList() {
-    state.queue = shuffle(state.queue);
-    saveState();
-    renderQueue();
-    toast("キューを並び替え");
+    toast("キューに追加しました");
   }
 
-  function renderSongList() {
-    const visible = getVisibleSongs();
-    el.list.innerHTML = "";
-    visible.forEach(song => {
-      const row = document.createElement("div");
-      row.className = "song";
-      row.dataset.name = song.name;
-      row.innerHTML = `
-        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
-        <div class="songMain">
-          <div class="songName">${escapeText(song.name)}</div>
-          <div class="songMeta">${state.favorites.includes(song.name) ? "お気に入り ・ " : ""}再生回数 ${state.playCounts[song.name] || 0}回</div>
-        </div>
-        <div class="songRight">
-          <button class="queueBtn" title="キューに追加">＋</button>
-          <button class="starBtn${state.favorites.includes(song.name) ? " active" : ""}" title="お気に入り">${state.favorites.includes(song.name) ? "★" : "☆"}</button>
-          <div class="badge">${song.name === state.currentSong?.name ? "再生中" : "タップで再生"}</div>
-        </div>
-      `;
-      row.querySelector(".queueBtn").addEventListener("click", e => { e.stopPropagation(); addToQueue(song.name); });
-      row.querySelector(".starBtn").addEventListener("click", e => { e.stopPropagation(); toggleFavorite(song.name); });
-      row.addEventListener("click", () => handleSongTap(song));
-      row.addEventListener("dblclick", () => addToQueue(song.name));
-      el.list.appendChild(row);
-    });
-    attachSortable(el.list, order => {
-      const visibleNames = order;
-      const remaining = state.playlist.map(s => s.name).filter(n => !visibleNames.includes(n));
-      state.order = [...visibleNames, ...remaining];
-      saveState();
-      renderSongList();
-      updateHeader();
-    });
-    updateNowPlayingUI(state.currentSong);
-  }
-
-  function toggleFavorite(name) {
-    const i = state.favorites.indexOf(name);
-    if (i >= 0) state.favorites.splice(i, 1);
+  function toggleFav(name){
+    const idx = state.favorites.indexOf(name);
+    if(idx >= 0) state.favorites.splice(idx, 1);
     else state.favorites.push(name);
     saveState();
     renderSongList();
-    renderQueue();
-    updateHeader();
-    if (state.currentSong?.name === name) updateNowPlayingUI(state.currentSong);
-    toast(i >= 0 ? "お気に入り解除" : "お気に入り追加");
+    if(state.currentSong?.name === name) updateNowPlayingUI(state.currentSong);
   }
 
-  function handleSongTap(song) {
-    const now = Date.now();
-    const same = state.songTapId === song.name && now - state.songTapTs < 260;
-    state.songTapId = song.name;
-    state.songTapTs = now;
-    clearTimeout(state.songTapTimer);
-    if (same) {
-      addToQueue(song.name);
-      state.songTapId = null;
-      return;
-    }
-    state.songTapTimer = setTimeout(() => {
-      state.songTapId = null;
-      playSong(song, { pushHistory: true });
-    }, 240);
-  }
-
-  function playSong(song, opts = {}) {
-    if (!song || !song.url) return;
-    ensureGraph();
-    const same = state.currentSong && state.currentSong.name === song.name && audio.src === song.url;
-
-    if (opts.pushHistory && state.currentSong && state.currentSong.name && state.currentSong.name !== song.name) {
-      state.backStack.push(state.currentSong.name);
-      state.backStack = state.backStack.slice(-120);
-    }
-
-    state.currentSong = song;
-
-    if (!same) {
-      audio.src = song.url;
-      state.pendingSeek = opts.startFromSavedPosition ? (loadNum(STORAGE.lastSongPos, 0) || 0) : 0;
-      audio.load();
-    }
-
-    updateNowPlayingUI(song);
-    setMediaSession();
-    saveState();
-    incrementPlayCount(song.name);
-    updateStats();
-    prewarmNext();
-    resumeAudioContext();
-    audio.play().catch(() => {});
-  }
-
-  function playSongByName(name, opts = {}) {
-    const song = getSongByName(name);
-    if (song) playSong(song, opts);
-  }
-
-  function playPause() {
-    if (!state.currentSong && state.playlist.length) {
-      playSong(getVisibleSongs()[0], { pushHistory: true });
-      return;
-    }
-    if (audio.paused) audio.play().catch(() => {});
-    else audio.pause();
-  }
-
-  function nextLibrarySong() {
-    const visible = getVisibleSongs();
-    if (!visible.length) return null;
-
-    if (state.queue.length) {
-      const nextName = state.queue.shift();
-      saveState();
-      renderQueue();
-      updateHeader();
-      return getSongByName(nextName) || visible[0];
-    }
-
-    if (state.shuffle) {
-      const pool = visible.filter(s => s.name !== state.currentSong?.name);
-      if (!pool.length) return visible[0];
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-
-    const idx = visible.findIndex(s => s.name === state.currentSong?.name);
-    const nextIdx = idx >= 0 ? idx + 1 : 0;
-    if (nextIdx >= visible.length) {
-      return state.repeat ? visible[0] : null;
-    }
-    return visible[nextIdx];
-  }
-
-  function nextMusic() {
-    const next = nextLibrarySong();
-    if (next) playSong(next, { pushHistory: true });
-    else if (state.currentSong && state.repeat) playSong(state.currentSong, { pushHistory: false });
-  }
-
-  function prevMusic() {
-    const visible = getVisibleSongs();
-    if (!visible.length) return;
-
-    let prev = null;
-    while (state.backStack.length) {
-      const name = state.backStack.pop();
-      const s = getSongByName(name);
-      if (s) { prev = s; break; }
-    }
-    if (!prev) {
-      const idx = visible.findIndex(s => s.name === state.currentSong?.name);
-      const prevIdx = idx >= 0 ? idx - 1 : visible.length - 1;
-      prev = visible[(prevIdx + visible.length) % visible.length];
-    }
-    saveState();
-    if (prev) playSong(prev, { pushHistory: false, startFromSavedPosition: true });
-  }
-
-  function prewarmNext() {
-    try {
-      const next = nextLibrarySong();
-      if (!next || !next.url) return;
-      const pre = new Audio();
-      pre.preload = "auto";
-      pre.src = next.url;
-      pre.load();
-    } catch {}
-  }
-
-  function setMediaSession() {
-    if (!("mediaSession" in navigator) || !state.currentSong) return;
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: state.currentSong.name,
-        artist: " ",
-        album: "Music Player"
-      });
-      navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
-      navigator.mediaSession.setActionHandler("play", () => playPause());
-      navigator.mediaSession.setActionHandler("pause", () => playPause());
-      navigator.mediaSession.setActionHandler("previoustrack", () => prevMusic());
-      navigator.mediaSession.setActionHandler("nexttrack", () => nextMusic());
-      navigator.mediaSession.setActionHandler("seekbackward", () => audio.currentTime = Math.max(0, (audio.currentTime || 0) - 10));
-      navigator.mediaSession.setActionHandler("seekforward", () => audio.currentTime = Math.min(audio.duration || Infinity, (audio.currentTime || 0) + 10));
-      navigator.mediaSession.setActionHandler("seekto", d => { if (d.seekTime != null) audio.currentTime = d.seekTime; });
-    } catch {}
-  }
-
-  function showPanel(id) {
-    state.activePanel = id;
-    document.querySelectorAll(".panelSection").forEach(p => p.classList.toggle("active", p.id === id));
-    document.querySelectorAll(".menuItem").forEach(b => b.classList.toggle("active", b.dataset.open === id));
-  }
-
-  function openMenu() {
-    state.menuOpen = true;
-    el.sidebar.classList.add("open");
-    el.overlay.classList.add("open");
-    el.sidebar.setAttribute("aria-hidden", "false");
-  }
-  function closeMenu() {
-    state.menuOpen = false;
-    el.sidebar.classList.remove("open");
-    el.overlay.classList.remove("open");
-    el.sidebar.setAttribute("aria-hidden", "true");
-  }
-
-  function openModal(modal) {
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden", "false");
-  }
-  function closeModal(modal) {
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden", "true");
-  }
-
-  function updateTimerStatus() {
-    const t = state.timer;
-    let text = "タイマーはOFF";
-    if (t.mode === "minutes") {
-      const remain = Math.max(0, t.target - Date.now());
-      text = `あと ${fmtLong(remain / 1000)} で停止`;
-      if (state.timerExpired) text += "<br>現在の曲が終わったら停止";
-    } else if (t.mode === "after") {
-      const d = new Date(t.target);
-      const remain = Math.max(0, t.target - Date.now());
-      text = `○時○分停止: ${d.toLocaleTimeString("ja-JP", { hour:"2-digit", minute:"2-digit" })}<br>残り ${fmtLong(remain / 1000)}`;
-      if (state.timerExpired) text += "<br>現在の曲が終わったら停止";
-    }
-    el.timerStatus.innerHTML = text;
-  }
-
-  function setTimerMinutes(mins) {
-    if (!mins || mins <= 0) {
-      state.timer = { mode: "off", target: 0, label: "OFF", stopAfterCurrent: false };
-      state.timerExpired = false;
-      saveState();
-      updateTimerStatus();
-      toast("タイマーOFF");
-      return;
-    }
-    state.timer = {
-      mode: "minutes",
-      target: Date.now() + mins * 60 * 1000,
-      label: `${mins}分後`,
-      stopAfterCurrent: false
-    };
-    state.timerExpired = false;
-    saveState();
-    updateTimerStatus();
-    toast(`${mins}分後に停止`);
-  }
-  function setTimerAtTime(timeString) {
-    if (!timeString) return toast("時刻を入れてね");
-    const [h, m] = timeString.split(":").map(Number);
-    const now = new Date();
-    const target = new Date(now);
-    target.setHours(h, m, 0, 0);
-    if (target.getTime() <= now.getTime()) target.setDate(target.getDate() + 1);
-    state.timer = {
-      mode: "after",
-      target: target.getTime(),
-      label: `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`,
-      stopAfterCurrent: false
-    };
-    state.timerExpired = false;
-    saveState();
-    updateTimerStatus();
-    toast(`停止時刻 ${state.timer.label}`);
-  }
-  function checkTimer() {
-    const t = state.timer;
-    if (t.mode === "off" || !t.target) return;
-    if (Date.now() < t.target) return;
-    if (!state.timerExpired) {
-      state.timerExpired = true;
-      t.stopAfterCurrent = true;
-      saveState();
-      updateTimerStatus();
-      toast("タイマー到達。曲が終わったら停止");
-    }
-  }
-  function handleEndedByTimer() {
-    if (state.timer.mode !== "off" && state.timerExpired && state.timer.stopAfterCurrent) {
-      audio.pause();
-      state.timer = { mode: "off", target: 0, label: "OFF", stopAfterCurrent: false };
-      state.timerExpired = false;
-      saveState();
-      updateTimerStatus();
-      toast("停止");
-      return true;
-    }
-    return false;
-  }
-
-  function updateStats() {
-    const totalPlays = Object.values(state.playCounts).reduce((a, b) => a + Number(b || 0), 0);
-    const totalListen = Object.values(state.listened).reduce((a, b) => a + Number(b || 0), 0);
-    el.statsSongs.textContent = String(state.playlist.length);
-    el.statsFavs.textContent = String(state.favorites.length);
-    el.statsPlays.textContent = String(totalPlays);
-    el.statsTime.textContent = fmtLong(totalListen);
-
-    const top = Object.entries(state.playCounts).sort((a,b) => b[1] - a[1]).slice(0,10);
-    el.topList.innerHTML = top.length ? top.map(([name, count], i) => `
-      <div class="queueItem">
-        <div class="badge">${i + 1}</div>
-        <div class="qTitle">${escapeText(name)}</div>
-        <div class="badge">${count}回</div>
-      </div>`).join("") : `<div class="notice">まだデータが少ないよ</div>`;
-
-    el.recentList.innerHTML = state.recent.length ? state.recent.slice(0,10).map((name, i) => `
-      <div class="queueItem">
-        <div class="badge">${i + 1}</div>
-        <div class="qTitle">${escapeText(name)}</div>
-        <button class="qBtn" data-play="${escapeText(name)}">再生</button>
-      </div>`).join("") : `<div class="notice">まだ最近再生はないよ</div>`;
-
-    el.recentList.querySelectorAll("[data-play]").forEach(btn => {
-      btn.addEventListener("click", () => playSongByName(btn.getAttribute("data-play"), { pushHistory: true }));
-    });
-  }
-
-  function renderQueue() {
+  function renderQueue(){
     el.queueList.innerHTML = "";
-    if (!state.queue.length) {
-      const empty = document.createElement("div");
-      empty.className = "notice";
-      empty.textContent = "キューは空だよ";
-      el.queueList.appendChild(empty);
+    if(!state.queue.length){
+      el.queueList.innerHTML = `<div style="color:var(--muted); font-size:.86rem">キューは空です</div>`;
       return;
     }
     state.queue.forEach((name, idx) => {
-      const song = getSongByName(name) || { name };
+      const displayName = name.replace(/\.(mp3|m4a|wav|ogg|flac|aac)$/i, "");
       const item = document.createElement("div");
-      item.className = "queueItem" + (state.currentSong?.name === name ? " current" : "");
-      item.dataset.name = name;
+      item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:var(--panel2); padding:8px 12px; border-radius:10px;";
       item.innerHTML = `
-        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
-        <div class="qTitle">${escapeText(song.name)}</div>
-        <button class="qBtn" data-action="play">再生</button>
-        <button class="qBtn" data-action="remove">✕</button>
+        <span style="font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">${displayName}</span>
+        <div style="display:flex; gap:4px; margin-left:8px;">
+          <button class="btn small moveUpBtn" style="padding:2px 6px;">▲</button>
+          <button class="btn small moveDownBtn" style="padding:2px 6px;">▼</button>
+          <button class="btn small delQueueBtn" style="padding:2px 6px;">✕</button>
+        </div>
       `;
-      item.querySelector('[data-action="play"]').addEventListener("click", () => playSongByName(name, { pushHistory: true }));
-      item.querySelector('[data-action="remove"]').addEventListener("click", () => removeFromQueue(idx));
+      
+      item.querySelector(".moveUpBtn").addEventListener("click", () => {
+        if(idx > 0) {
+          [state.queue[idx - 1], state.queue[idx]] = [state.queue[idx], state.queue[idx - 1]];
+          saveState();
+          renderQueue();
+        }
+      });
+
+      item.querySelector(".moveDownBtn").addEventListener("click", () => {
+        if(idx < state.queue.length - 1) {
+          [state.queue[idx + 1], state.queue[idx]] = [state.queue[idx], state.queue[idx + 1]];
+          saveState();
+          renderQueue();
+        }
+      });
+
+      item.querySelector(".delQueueBtn").addEventListener("click", () => {
+        state.queue.splice(idx, 1);
+        saveState();
+        renderQueue();
+      });
+
       el.queueList.appendChild(item);
     });
-    attachSortable(el.queueList, order => {
-      state.queue = order;
-      saveState();
-      renderQueue();
-      updateHeader();
-    });
   }
-  function removeFromQueue(index) {
-    state.queue.splice(index, 1);
-    saveState();
-    renderQueue();
-    updateHeader();
-    toast("キューから削除");
-  }
-  function clearQueue() {
+
+  el.btnQueueClear.addEventListener("click", () => {
     state.queue = [];
     saveState();
     renderQueue();
-    updateHeader();
-    toast("キューを消去");
-  }
-  function shuffleQueueList() {
-    state.queue = shuffle(state.queue);
+    toast("再生キューを全消去しました");
+  });
+
+  el.btnQueueShuffle.addEventListener("click", () => {
+    for (let i = state.queue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [state.queue[i], state.queue[j]] = [state.queue[j], state.queue[i]];
+    }
     saveState();
     renderQueue();
-    toast("キューを並び替え");
-  }
-  function addToQueue(name) {
-    if (!name) return;
-    state.queue.push(name);
+    toast("キューをシャッフルしました");
+  });
+
+  el.pillFavs.addEventListener("click", () => {
+    state.favOnly = !state.favOnly;
+    el.pillFavs.classList.toggle("active", state.favOnly);
     saveState();
-    renderQueue();
-    updateHeader();
-    toast("キューに追加");
-  }
-
-  function attachSortable(container, onCommit) {
-    const rows = [...container.querySelectorAll(".song, .queueItem")];
-    rows.forEach(row => {
-      const handle = row.querySelector(".dragHandle");
-      if (!handle) return;
-      handle.onpointerdown = ev => {
-        ev.preventDefault();
-        const startX = ev.clientX, startY = ev.clientY;
-        const pointerId = ev.pointerId;
-        let dragging = false;
-        row.setPointerCapture?.(pointerId);
-        row.classList.add("dragging");
-        const move = e => {
-          const dx = Math.abs(e.clientX - startX), dy = Math.abs(e.clientY - startY);
-          if (!dragging && (dx > 8 || dy > 8)) dragging = true;
-          if (!dragging) return;
-          const under = document.elementFromPoint(e.clientX, e.clientY);
-          const target = under && under.closest(".song, .queueItem");
-          if (!target || target === row || target.parentElement !== container) return;
-          const rect = target.getBoundingClientRect();
-          const before = e.clientY < rect.top + rect.height / 2;
-          if (before) container.insertBefore(row, target);
-          else container.insertBefore(row, target.nextSibling);
-        };
-        const up = () => {
-          row.classList.remove("dragging");
-          container.onpointermove = null;
-          container.onpointerup = null;
-          container.onpointercancel = null;
-          const order = [...container.querySelectorAll(".song, .queueItem")].map(x => x.dataset.name);
-          onCommit(order);
-        };
-        container.onpointermove = move;
-        container.onpointerup = up;
-        container.onpointercancel = up;
-      };
-    });
-  }
-
-  function renderSongList() {
-    const visible = getVisibleSongs();
-    el.list.innerHTML = "";
-    visible.forEach(song => {
-      const row = document.createElement("div");
-      row.className = "song";
-      row.dataset.name = song.name;
-      row.innerHTML = `
-        <button class="dragHandle" title="ドラッグ">⋮⋮</button>
-        <div class="songMain">
-          <div class="songName">${escapeText(song.name)}</div>
-          <div class="songMeta">${state.favorites.includes(song.name) ? "お気に入り ・ " : ""}再生回数 ${state.playCounts[song.name] || 0}回</div>
-        </div>
-        <div class="songRight">
-          <button class="queueBtn" title="キューに追加">＋</button>
-          <button class="starBtn${state.favorites.includes(song.name) ? " active" : ""}" title="お気に入り">${state.favorites.includes(song.name) ? "★" : "☆"}</button>
-          <div class="badge">${song.name === state.currentSong?.name ? "再生中" : "タップで再生"}</div>
-        </div>
-      `;
-      row.querySelector(".queueBtn").addEventListener("click", e => { e.stopPropagation(); addToQueue(song.name); });
-      row.querySelector(".starBtn").addEventListener("click", e => { e.stopPropagation(); toggleFavorite(song.name); });
-      row.addEventListener("click", () => handleSongTap(song));
-      row.addEventListener("dblclick", () => addToQueue(song.name));
-      el.list.appendChild(row);
-    });
-    attachSortable(el.list, order => {
-      const visibleNames = order;
-      const remaining = state.playlist.map(s => s.name).filter(n => !visibleNames.includes(n));
-      state.order = [...visibleNames, ...remaining];
-      saveState();
-      renderSongList();
-      updateHeader();
-    });
-    updateNowPlayingUI(state.currentSong);
-  }
-
-  function renderEq() {
-    el.eqPresetRow.innerHTML = "";
-    Object.keys(EQ_PRESETS).forEach(name => {
-      const btn = document.createElement("button");
-      btn.className = "btn small" + (state.eqState.preset === name ? " active" : "");
-      btn.textContent = name;
-      btn.dataset.eqpreset = name;
-      btn.addEventListener("click", () => setEqPreset(name));
-      el.eqPresetRow.appendChild(btn);
-    });
-
-    el.eqBands.innerHTML = "";
-    EQ_BANDS.forEach((band, i) => {
-      const box = document.createElement("div");
-      box.className = "vBand";
-      box.innerHTML = `
-        <div class="vLabel">${band.label}</div>
-        <div class="vTrack">
-          <input class="vSlider" type="range" min="-12" max="12" step="1" value="${Number(state.eqState.gains?.[i] || 0)}" data-eq="${i}">
-        </div>
-        <div class="vValue" data-eqvalue="${i}">${Number(state.eqState.gains?.[i] || 0)} dB</div>
-      `;
-      box.querySelector("input").addEventListener("input", e => setEqGain(i, e.target.value));
-      el.eqBands.appendChild(box);
-    });
-    updateEqPresetButtons();
-  }
-
-  function renderAll() {
-    updateHeader();
     renderSongList();
-    renderQueue();
-    renderEq();
-    updateStats();
-    updateTimerStatus();
-    updateProgressUI();
-    applyEq();
+  });
+
+  ["dragenter", "dragover", "dragleave", "drop"].forEach(evt => {
+    el.shell.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }, false);
+  });
+  ["dragenter", "dragover"].forEach(evt => el.shell.addEventListener(evt, () => el.shell.classList.add("dragover")));
+  ["dragleave", "drop"].forEach(evt => el.shell.addEventListener(evt, () => el.shell.classList.remove("dragover")));
+  el.shell.addEventListener("drop", e => {
+    const dt = e.dataTransfer;
+    if(dt && dt.files.length) loadFiles(dt.files);
+  });
+
+  function openMenu(){
+    state.menuOpen = true;
+    document.body.style.overflow = "hidden";
+    el.sidebar.classList.add("open");
+    el.overlay.classList.add("open");
+    showMainMenuList();
+  }
+  function closeMenu(){
+    state.menuOpen = false;
+    document.body.style.overflow = "";
+    el.sidebar.classList.remove("open");
+    el.overlay.classList.remove("open");
+  }
+  function showMainMenuList(){
+    el.mainMenuList.style.display = "flex";
+    document.querySelectorAll(".panelSection").forEach(s => s.classList.remove("active"));
+    el.btnSideBack.style.display = "none";
+    el.sideTitle.textContent = "メニュー";
+  }
+  function openSection(id, title){
+    el.mainMenuList.style.display = "none";
+    document.querySelectorAll(".panelSection").forEach(s => s.classList.remove("active"));
+    document.getElementById(id)?.classList.add("active");
+    el.btnSideBack.style.display = "block";
+    el.sideTitle.textContent = title;
   }
 
-  function updateTimerInput() {
-    if (state.timer.mode === "after") {
-      const d = new Date(state.timer.target);
-      el.timerTime.value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  el.btnMenu.addEventListener("click", openMenu);
+  el.btnCloseMenu.addEventListener("click", closeMenu);
+  el.overlay.addEventListener("click", closeMenu);
+  el.btnSideBack.addEventListener("click", showMainMenuList);
+
+  document.querySelectorAll(".menuItem").forEach(btn => {
+    btn.addEventListener("click", () => openSection(btn.dataset.section, btn.childNodes[0].textContent.trim()));
+  });
+
+  document.querySelectorAll('input[type="range"]').forEach(input => {
+    input.addEventListener("pointerdown", () => isSlidingRange = true);
+    input.addEventListener("pointerup", () => isSlidingRange = false);
+    input.addEventListener("touchstart", () => isSlidingRange = true, {passive:true});
+    input.addEventListener("touchend", () => isSlidingRange = false, {passive:true});
+  });
+
+  let touchX = 0, touchY = 0;
+  document.addEventListener("touchstart", e => {
+    touchX = e.changedTouches[0].clientX;
+    touchY = e.changedTouches[0].clientY;
+  }, {passive:true});
+  document.addEventListener("touchend", e => {
+    if(isSlidingRange || state.menuOpen) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    const dy = e.changedTouches[0].clientY - touchY;
+    if(Math.abs(dx) > 90 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      dx < 0 ? nextTrack() : prevTrack();
+    }
+  }, {passive:true});
+
+  window.addEventListener("keydown", e => {
+    if(["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+    if(e.code === "Space") { e.preventDefault(); playPause(); }
+    else if(e.code === "ArrowLeft") { e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - 5); }
+    else if(e.code === "ArrowRight") { e.preventDefault(); audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5); }
+    else if(e.code === "ArrowUp") { e.preventDefault(); el.volume.value = Math.min(1, Number(el.volume.value) + 0.05); el.volume.dispatchEvent(new Event("input")); }
+    else if(e.code === "ArrowDown") { e.preventDefault(); el.volume.value = Math.max(0, Number(el.volume.value) - 0.05); el.volume.dispatchEvent(new Event("input")); }
+  });
+
+  function renderSeekbarHeatmap(){
+    const cvs = el.seekbarHeatmap;
+    const ctx = cvs.getContext("2d");
+    cvs.width = cvs.clientWidth;
+    cvs.height = cvs.clientHeight;
+
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    if(!state.currentSong) return;
+
+    const data = heatMapData[state.currentSong.name] || Array(30).fill(1);
+    const step = cvs.width / (data.length - 1);
+
+    ctx.fillStyle = "rgba(29, 185, 84, 0.25)";
+    ctx.beginPath();
+    ctx.moveTo(0, cvs.height);
+    for(let i=0; i<data.length; i++){
+      const val = Math.min(cvs.height * 0.8, data[i] * 4);
+      const x = i * step;
+      const y = cvs.height - val;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(cvs.width, cvs.height);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function renderWave(){
+    requestAnimationFrame(renderWave);
+    updateSpatialAudio();
+
+    const cvs = el.wave;
+    if(!cvs) return;
+    const ctx = cvs.getContext("2d");
+    
+    if(cvs.width !== cvs.clientWidth || cvs.height !== cvs.clientHeight) {
+      cvs.width = cvs.clientWidth;
+      cvs.height = cvs.clientHeight;
+    }
+
+    const w = cvs.width, h = cvs.height;
+    ctx.clearRect(0, 0, w, h);
+
+    if(!analyser || !analyserData || audio.paused){
+      ctx.fillStyle = getComputedStyle(document.body).color || "rgba(150,150,150,.8)";
+      ctx.font = "12px sans-serif";
+      ctx.fillText("再生を開始すると波形が表示されます", 16, 24);
+      return;
+    }
+
+    analyser.getByteFrequencyData(analyserData);
+    const bars = 48;
+    const barW = w / bars;
+
+    for(let i = 0; i < bars; i++){
+      const idx = Math.floor(i * (analyserData.length / bars));
+      const v = analyserData[idx] / 255;
+      const barH = Math.max(3, v * (h * 0.88));
+      const x = i * barW + 2;
+      const y = h - barH;
+
+      const r = Math.floor(27 + v * (114 - 27));
+      const g = Math.floor(67 + (1 - v) * 50);
+      const b = Math.floor(50 + v * (183 - 50));
+
+      ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      ctx.fillRect(x, y, Math.max(2, barW - 4), barH);
     }
   }
 
-  function updateProgressLoop() {
-    const dur = audio.duration || 0;
-    const cur = audio.currentTime || 0;
+  audio.addEventListener("timeupdate", () => {
+    const cur = audio.currentTime || 0, dur = audio.duration || 0;
     const pct = dur ? (cur / dur) * 100 : 0;
     el.progress.value = String(pct);
     el.miniProgress.value = String(pct);
     el.timeNow.textContent = fmtTime(cur);
     el.timeAll.textContent = fmtTime(dur);
-    el.miniTimeNow.textContent = fmtTime(cur);
-    el.miniTimeAll.textContent = fmtTime(dur);
+
+    if(state.silenceSkip && analyser && analyserData && !audio.paused) {
+      analyser.getByteFrequencyData(analyserData);
+      const sum = analyserData.reduce((a,b) => a + b, 0);
+      if(sum === 0 && cur > 1 && dur - cur > 1) {
+        audio.currentTime += 0.5;
+      }
+    }
+
+    if(state.currentSong && dur) {
+      if(!heatMapData[state.currentSong.name]) heatMapData[state.currentSong.name] = Array(30).fill(1);
+      const bucket = Math.floor((cur / dur) * 30);
+      if(heatMapData[state.currentSong.name][bucket] !== undefined) {
+        heatMapData[state.currentSong.name][bucket] += 0.02;
+      }
+    }
+  });
+
+  audio.addEventListener("play", updatePlayPauseUI);
+  audio.addEventListener("pause", updatePlayPauseUI);
+  audio.addEventListener("ended", nextTrack);
+
+  el.folder.addEventListener("change", e => loadFiles(e.target.files));
+  el.search.addEventListener("input", e => { state.search = e.target.value.trim(); renderSongList(); });
+
+  el.playbackRate.addEventListener("input", () => {
+    currentRate = Number(el.playbackRate.value);
+    if (el.customRateInput) el.customRateInput.value = currentRate;
+    applyPitchAndRate();
+  });
+
+  if (el.customRateInput) {
+    const syncCustomRate = () => {
+      let val = parseFloat(el.customRateInput.value);
+      if (isNaN(val)) return;
+      if (val < 0.1) val = 0.1;
+      if (val > 10) val = 10;
+      currentRate = val;
+      if (val >= 0.25 && val <= 2.0) {
+        el.playbackRate.value = val;
+      }
+      applyPitchAndRate();
+    };
+    el.customRateInput.addEventListener("input", syncCustomRate);
+    el.customRateInput.addEventListener("change", () => {
+      syncCustomRate();
+      el.customRateInput.value = currentRate;
+    });
   }
 
-  function renderWave() {
-    requestAnimationFrame(renderWave);
-    const w = el.wave.clientWidth || el.wave.width;
-    const h = el.wave.clientHeight || el.wave.height;
-    const ctx = el.wave.getContext("2d");
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#0f0f0f";
-    ctx.fillRect(0, 0, w, h);
-    if (!analyser || !analyserData || !analyserSmooth) {
-      ctx.fillStyle = "rgba(255,255,255,.07)";
-      ctx.fillText("再生すると波形が出る", 16, 24);
+  el.pannerSlider.addEventListener("input", () => {
+    const val = Number(el.pannerSlider.value);
+    state.panValue = val;
+    if (pannerNode) pannerNode.pan.value = val;
+    el.pannerValText.textContent = val === 0 ? "中央" : val < 0 ? `左 ${Math.abs(Math.round(val*100))}%` : `右 ${Math.round(val*100)}%`;
+  });
+
+  el.pitchShift.addEventListener("input", () => {
+    state.pitchSemitones = Number(el.pitchShift.value);
+    applyPitchAndRate();
+    saveState();
+  });
+
+  el.progress.addEventListener("input", () => { if(audio.duration) audio.currentTime = (Number(el.progress.value)/100)*audio.duration; });
+  el.miniProgress.addEventListener("input", () => { if(audio.duration) audio.currentTime = (Number(el.miniProgress.value)/100)*audio.duration; });
+
+  el.btnPlay.addEventListener("click", playPause);
+  el.miniPlay.addEventListener("click", playPause);
+  el.btnNext.addEventListener("click", nextTrack);
+  el.miniNext.addEventListener("click", nextTrack);
+  el.btnPrev.addEventListener("click", prevTrack);
+  el.miniPrev.addEventListener("click", prevTrack);
+  el.btnFav.addEventListener("click", () => { if(state.currentSong) toggleFav(state.currentSong.name); });
+
+  function toggleShuffle(){
+    state.shuffle = !state.shuffle;
+    saveState();
+    updateMainToggleBtns();
+  }
+  function toggleRepeat(){
+    state.repeat = !state.repeat;
+    audio.loop = state.repeat;
+    saveState();
+    updateMainToggleBtns();
+  }
+
+  function updateMainToggleBtns(){
+    el.btnMainShuffle.classList.toggle("active", state.shuffle);
+    el.btnMainRepeat.classList.toggle("active", state.repeat);
+    el.shuffleState.textContent = `シャッフル: ${state.shuffle ? "ON" : "OFF"}`;
+  }
+
+  el.btnMainShuffle.addEventListener("click", toggleShuffle);
+  el.btnMainRepeat.addEventListener("click", toggleRepeat);
+
+  el.btnCrossfade.addEventListener("click", () => {
+    state.crossfade = !state.crossfade;
+    el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
+    el.btnCrossfade.classList.toggle("active", state.crossfade);
+    saveState();
+  });
+
+  el.btnSilenceSkip.addEventListener("click", () => {
+    state.silenceSkip = !state.silenceSkip;
+    el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
+    el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
+    saveState();
+  });
+
+  function setSleepTimer(minutes) {
+    if (sleepTimerId) clearInterval(sleepTimerId);
+    if (minutes === "off" || minutes <= 0) {
+      el.timerStatus.textContent = "タイマーOFF";
       return;
     }
-    analyser.getByteFrequencyData(analyserData);
-
-for (let i = 0; i < analyserData.length; i++) {
-  analyserSmooth[i] += (analyserData[i] - analyserSmooth[i]) * 0.35;
-}
-
-const bars = 48;
-const center = h / 2;
-const barW = w / bars;
-
-for (let i = 0; i < bars; i++) {
-  const idx = Math.floor(i * (analyserData.length / bars));
-
-  const v = Math.pow(
-    (analyserSmooth[idx] || 0) / 30,
-    0.75
-  );
-
-  const barH = Math.max(4, v * (h * 1.35));
-      const x = i * barW + 2;
-      ctx.fillStyle = v > .78 ? "rgba(248,210,92,.95)" : v > .50 ? "rgba(105,227,139,.95)" : "rgba(29,185,84,.92)";
-      ctx.fillRect(x, center - barH/2, Math.max(2, barW - 4), barH);
-    }
-  }
-
-  // menu / modal bindings
-  el.btnMenu.addEventListener("click", openMenu);
-  el.btnCloseMenu.addEventListener("click", closeMenu);
-  el.overlay.addEventListener("click", () => {
-    closeMenu();
-    document.querySelectorAll(".modal.open").forEach(m => closeModal(m));
-  });
-
-  document.querySelectorAll(".menuItem").forEach(item => {
-    item.addEventListener("click", () => {
-      const open = item.dataset.open;
-      if (open === "settingsSection") {
-        showPanel("settingsSection");
-        openMenu();
-        return;
+    sleepTimerEnd = Date.now() + minutes * 60 * 1000;
+    
+    sleepTimerId = setInterval(() => {
+      const remain = Math.ceil((sleepTimerEnd - Date.now()) / 1000);
+      if (remain <= 0) {
+        clearInterval(sleepTimerId);
+        audio.pause();
+        updatePlayPauseUI();
+        el.timerStatus.textContent = "タイマーOFF (自動停止しました)";
+        toast("スリープタイマーで再生を停止しました");
+      } else {
+        el.timerStatus.textContent = `残り時間: ${fmtTime(remain)}`;
       }
-      const modal = document.getElementById(open);
-      if (modal) {
-        openModal(modal);
-      }
-      closeMenu();
-    });
-  });
-
-  document.querySelectorAll("[data-close-modal]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const modal = btn.closest(".modal");
-      if (modal) closeModal(modal);
-    });
-  });
-
-  el.btnQueueClear.addEventListener("click", clearQueue);
-  el.btnQueueShuffle.addEventListener("click", shuffleQueueList);
-  el.btnEqSave.addEventListener("click", saveCustomEq);
-  el.btnEqReset.addEventListener("click", resetEq);
-  el.btnTimerAt.addEventListener("click", () => setTimerAtTime(el.timerTime.value));
-  document.querySelectorAll("[data-timer]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const v = btn.dataset.timer;
-      if (v === "off") setTimerMinutes(0);
-      else setTimerMinutes(Number(v));
-    });
-  });
-
-  // main control bindings
-  el.folder.addEventListener("change", e => loadFiles(e.target.files));
-  el.search.addEventListener("input", e => {
-    state.search = e.target.value.trim();
-    saveState();
-    renderSongList();
-    updateHeader();
-  });
-  el.volume.addEventListener("input", () => {
-    audio.volume = Number(el.volume.value);
-    el.volText.textContent = `${Math.round(audio.volume * 100)}%`;
-    saveState();
-  });
-  el.progress.addEventListener("input", () => { if (audio.duration) audio.currentTime = (Number(el.progress.value) / 100) * audio.duration; });
-  el.miniProgress.addEventListener("input", () => { if (audio.duration) audio.currentTime = (Number(el.miniProgress.value) / 100) * audio.duration; });
-
-  el.btnShuffle.addEventListener("click", () => { state.shuffle = !state.shuffle; saveState(); updateHeader(); });
-  el.btnRepeat.addEventListener("click", () => { state.repeat = !state.repeat; saveState(); updateHeader(); });
-  el.btnFavOnly.addEventListener("click", () => { state.favoriteOnly = !state.favoriteOnly; saveState(); renderSongList(); updateHeader(); });
-  el.btnSideShuffle.addEventListener("click", () => { state.shuffle = !state.shuffle; saveState(); updateHeader(); });
-  el.btnSideRepeat.addEventListener("click", () => { state.repeat = !state.repeat; saveState(); updateHeader(); });
-  el.btnFavOnlySide.addEventListener("click", () => { state.favoriteOnly = !state.favoriteOnly; saveState(); renderSongList(); updateHeader(); });
-
-  el.btnPrev.addEventListener("click", prevMusic);
-  el.btnPlay.addEventListener("click", playPause);
-  el.btnNext.addEventListener("click", nextMusic);
-  el.miniPrev.addEventListener("click", prevMusic);
-  el.miniPlay.addEventListener("click", playPause);
-  el.miniNext.addEventListener("click", nextMusic);
-  el.btnFav.addEventListener("click", () => { if (state.currentSong) toggleFavorite(state.currentSong.name); });
-
-  document.addEventListener("keydown", e => {
-    if (["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName)) return;
-    if (e.code === "Space") { e.preventDefault(); playPause(); }
-    if (e.code === "ArrowRight") nextMusic();
-    if (e.code === "ArrowLeft") prevMusic();
-    if (e.key === "m") openMenu();
-    if (e.key === "Escape") {
-      closeMenu();
-      document.querySelectorAll(".modal.open").forEach(m => closeModal(m));
-    }
-  });
-
-  // swipe
-  let touchX = 0, touchY = 0, touchT = 0;
-  document.addEventListener("touchstart", e => {
-    const t = e.changedTouches[0];
-    touchX = t.clientX; touchY = t.clientY; touchT = Date.now();
-  }, { passive: true });
-  document.addEventListener("touchend", e => {
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchX;
-    const dy = t.clientY - touchY;
-    const dt = Date.now() - touchT;
-    if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 1.2 && dt < 700) {
-      dx < 0 ? nextMusic() : prevMusic();
-    }
-  }, { passive: true });
-
-  // audio events
-  audio.addEventListener("play", async () => {
-    ensureGraph();
-    await resumeAudioContext();
-    setMediaSession();
-    saveState();
-  });
-  audio.addEventListener("pause", () => {
-    if ("mediaSession" in navigator) {
-      try { navigator.mediaSession.playbackState = "paused"; } catch {}
-    }
-    saveState();
-  });
-  audio.addEventListener("loadedmetadata", () => {
-    if (state.pendingSeek != null) {
-      const safe = Math.max(0, Math.min(state.pendingSeek, Math.max(0, (audio.duration || 0) - 0.2)));
-      try { audio.currentTime = safe; } catch {}
-      state.pendingSeek = null;
-    }
-    updateProgressUI();
-  });
-  audio.addEventListener("timeupdate", () => {
-    updateProgressLoop();
-    if (state.currentSong) {
-      const now = audio.currentTime || 0;
-      const last = state.lastTick || now;
-      const delta = Math.max(0, now - last);
-      if (delta > 0 && !audio.paused) addPlayStats(state.currentSong, delta);
-      state.lastTick = now;
-    }
-    if ((audio.duration || 0) - (audio.currentTime || 0) < 12) prewarmNext();
-    checkTimer();
-  });
-  audio.addEventListener("ended", () => {
-    state.lastTick = 0;
-    if (handleEndedByTimer()) return;
-    const next = nextLibrarySong();
-    if (next) playSong(next, { pushHistory: true });
-    else if (state.repeat && state.currentSong) playSong(state.currentSong, { pushHistory: false });
-  });
-  audio.addEventListener("seeked", () => {
-    updateProgressLoop();
-    saveState();
-  });
-  audio.addEventListener("error", () => {
-    el.nowSub.textContent = "音声の読み込みでエラーが出たみたい";
-    el.miniSub.textContent = "エラー";
-  });
-
-  function nextLibrarySong() {
-    const visible = getVisibleSongs();
-    if (!visible.length) return null;
-
-    if (state.queue.length) {
-      const nextName = state.queue.shift();
-      saveState();
-      renderQueue();
-      updateHeader();
-      return getSongByName(nextName) || visible[0];
-    }
-
-    if (state.shuffle) {
-      const pool = visible.filter(s => s.name !== state.currentSong?.name);
-      if (!pool.length) return visible[0];
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-
-    const idx = visible.findIndex(s => s.name === state.currentSong?.name);
-    const nextIdx = idx >= 0 ? idx + 1 : 0;
-    if (nextIdx >= visible.length) return state.repeat ? visible[0] : null;
-    return visible[nextIdx];
+    }, 1000);
+    toast(`${minutes}分後に自動停止します`);
   }
 
-  function updateQueueAndTimer() {
-    updateTimerStatus();
-    updateHeader();
-  }
-
-  // preserve audio position stats
-  window.addEventListener("beforeunload", () => {
-    saveState();
-    if (state.currentSong) state.listened[state.currentSong.name] = state.listened[state.currentSong.name] || 0;
+  document.querySelectorAll("[data-timer]").forEach(b => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll("[data-timer]").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+      const val = b.dataset.timer;
+      if (val === "off") setSleepTimer("off");
+      else setSleepTimer(Number(val));
+    });
   });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) saveState(); });
 
-  // drag / drop sort
-  function attachMenus() {
-    updateHeader();
+  el.btnThemeSystem.addEventListener("click", () => { state.themeMode = "system"; saveState(); applyTheme(); });
+  el.btnThemeDark.addEventListener("click", () => { state.themeMode = "dark"; saveState(); applyTheme(); });
+  el.btnThemeLight.addEventListener("click", () => { state.themeMode = "light"; saveState(); applyTheme(); });
+  el.btnThemeCustom.addEventListener("click", () => { state.themeMode = "custom"; saveState(); applyTheme(); });
+
+  function renderAll(){
+    el.pillSongs.textContent = `${getVisibleSongs().length}曲`;
+    el.pillFavs.textContent = `${state.favorites.length}☆`;
+    el.pillFavs.classList.toggle("active", state.favOnly);
+    el.statSongs.textContent = String(state.playlist.length);
+    const totalPlays = Object.values(state.playCounts).reduce((a,b)=>a+b, 0);
+    el.statPlays.textContent = String(totalPlays);
     renderSongList();
     renderQueue();
-    renderEq();
-    updateStats();
-    updateTimerStatus();
-    updateProgressUI();
-    applyEq();
-    updateEqPresetButtons();
-    if (state.favorites.length || state.search || !state.shuffle || state.repeat || state.favoriteOnly) updateHeader();
+    renderEqualizer();
+    renderPlaylists();
+    applyTheme();
+    renderColorPickers();
+    updateMainToggleBtns();
+    setDMode(state.dMode);
   }
 
-  // initial restore
-  el.volText.textContent = `${Math.round(audio.volume * 100)}%`;
-  attachMenus();
-  updateNowPlayingUI(null);
-  updateTimerInput();
-  if (state.eqState.preset === "Normal" && state.eqState.gains?.some(v => v !== 0)) state.eqState.preset = "Custom";
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});
+  initDB().then(() => {
+    reloadPlaylistFromDB();
+  });
 
-  setInterval(() => {
-    updateTimerStatus();
-    if (state.timer.mode !== "off") checkTimer();
-    updateStats();
-  }, 1000);
+  el.volume.value = loadNum(STORAGE.volume, 1);
+  audio.volume = Number(el.volume.value);
+  
+  el.playbackRate.value = "1.0";
+  if (el.customRateInput) el.customRateInput.value = "1.0";
+  currentRate = 1.0;
+  el.pitchShift.value = state.pitchSemitones;
+  applyPitchAndRate();
 
+  el.btnCrossfade.classList.toggle("active", state.crossfade);
+  el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
+  el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
+  el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
+
+  renderAll();
   renderWave();
+  updateArtwork(null);
 
-  function showCurrentStyle() {
-    if (state.favorites.length || state.search || !state.shuffle || state.repeat || state.favoriteOnly) updateHeader();
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', playPause);
+    navigator.mediaSession.setActionHandler('pause', playPause);
+    navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+    navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (details.fastSeek && 'fastSeek' in audio) {
+        audio.fastSeek(details.seekTime);
+      } else if (audio.duration) {
+        audio.currentTime = details.seekTime;
+      }
+    });
   }
-  showCurrentStyle();
-
 })();
 </script>
 </body>
