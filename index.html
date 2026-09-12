@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Music Player v2.9</title>
+<title>Music Player v3.1</title>
 <style>
 :root {
   --bg: #121212;
@@ -961,7 +961,7 @@ input[type="range"] {
     "#7209b7", "#f72585", "#121212", "#ffffff"
   ];
 
-  const dbName = "Music Player v2.9";
+  const dbName = "Music Player v3.0";
   let db = null;
   function initDB() {
     return new Promise(resolve => {
@@ -2528,64 +2528,47 @@ input[type="range"] {
   el.btnThemeLight.addEventListener("click", () => { state.themeMode = "light"; saveState(); applyTheme(); });
   el.btnThemeCustom.addEventListener("click", () => { state.themeMode = "custom"; saveState(); applyTheme(); });
 
-  function renderAll(){
-    el.pillSongs.textContent = `${getVisibleSongs().length}曲`;
+  function renderAll() {
+    el.pillSongs.textContent = `${state.playlist.length}曲`;
     el.pillFavs.textContent = `${state.favorites.length}☆`;
-    el.pillFavs.classList.toggle("active", state.favOnly);
-    el.statSongs.textContent = String(state.playlist.length);
-    const totalPlays = Object.values(state.playCounts).reduce((a,b)=>a+b, 0);
-    el.statPlays.textContent = String(totalPlays);
-    renderSongList();
-    renderQueue();
-    renderEqualizer();
-    renderPlaylists();
-    applyTheme();
-    renderColorPickers();
+    el.statSongs.textContent = `${state.playlist.length}`;
+    
+    const totalPlays = Object.values(state.playCounts).reduce((a, b) => a + b, 0);
+    el.statPlays.textContent = `${totalPlays}`;
+
     updateMainToggleBtns();
     setDMode(state.dMode);
+    applyTheme();
+    renderColorPickers();
+    renderEqualizer();
+    renderPlaylists();
+    renderQueue();
+    renderSongList();
+    if (state.currentSong) updateNowPlayingUI(state.currentSong);
   }
 
-  initDB().then(() => {
-    reloadPlaylistFromDB();
-  });
+  // --- Service Worker / PWA / Web Share Target 登録処理 ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(registration => {
+        console.log('ServiceWorker registered with scope: ', registration.scope);
+      }).catch(err => {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
 
-  const savedVol = loadNum(STORAGE.volume, 1);
-  updateVolumeUI(savedVol, true);
-  
-  el.playbackRate.value = "1.0";
-  if (el.customRateInput) el.customRateInput.value = "1.0";
-  currentRate = 1.0;
-  el.pitchShift.value = state.pitchSemitones;
-  applyPitchAndRate();
-
-  el.btnCrossfade.classList.toggle("active", state.crossfade);
-  el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
-  el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
-  el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
-
-  renderAll();
-  renderWave();
-  updateArtwork(null);
-
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => { playPause(); });
-    navigator.mediaSession.setActionHandler('pause', () => { playPause(); });
-    navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-      if (details.fastSeek && 'fastSeek' in audio) {
-        audio.fastSeek(details.seekTime);
-      } else if (audio.duration) {
-        audio.currentTime = details.seekTime;
+    navigator.serviceWorker.addEventListener('message', async (event) => {
+      if (event.data && event.data.action === 'share-target' && event.data.files) {
+        toast(`${event.data.files.length}件の共有ファイルを受信中...`);
+        await loadFiles(event.data.files);
       }
-      updateMediaSessionPosition();
     });
   }
 
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && !audio.paused) {
-      requestWakeLock();
-    }
+  initDB().then(async () => {
+    await reloadPlaylistFromDB();
+    renderAll();
+    renderWave();
   });
 })();
 </script>
