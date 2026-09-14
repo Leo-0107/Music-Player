@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Music Player v3.6</title>
+<title>Music Player v3.8</title>
 <style>
 :root {
   --bg: #121212;
@@ -60,7 +60,7 @@ body.theme-light select option {
 .app {
   width: min(1180px, 100%);
   margin: 0 auto;
-  padding: 12px 14px 128px;
+  padding: 12px 14px 210px; /* ボトムナビとミニプレーヤー用に余白を拡大 */
 }
 
 .shell {
@@ -81,8 +81,7 @@ body.theme-light select option {
 
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--line);
@@ -93,6 +92,35 @@ body.theme-light select option {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  width: 100%;
+}
+
+.titleArea {
+  flex: 1;
+  min-width: 0;
+}
+
+.scroll-container {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  width: 100%;
+}
+
+.scroll-text {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.scroll-text.scrolling {
+  animation: marqueeScroll 8s linear infinite alternate;
+  animation-play-state: paused;
+}
+
+@keyframes marqueeScroll {
+  0%, 15% { transform: translateX(0); }
+  85%, 100% { transform: translateX(var(--scroll-dist, -50%)); }
 }
 
 .menuBtn {
@@ -110,23 +138,19 @@ body.theme-light select option {
   margin: 0;
   font-size: 1.15rem;
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 #nowSub {
   color: var(--muted);
   font-size: .86rem;
   margin-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .headerRight {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  padding-left: 54px;
 }
 .pill {
   display: inline-flex;
@@ -154,6 +178,7 @@ body.theme-light select option {
 }
 @media (max-width: 960px) {
   .grid { grid-template-columns: 1fr; }
+  .headerRight { padding-left: 0; }
 }
 
 .coverBox {
@@ -348,14 +373,15 @@ input[type="range"] {
   width: min(1180px, 100%);
   margin: 0 auto;
   padding: 8px 16px 10px;
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.miniTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.miniNow { min-width: 0; flex: 1; }
-#miniTitle { font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#miniSub { font-size: .8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.miniBtns { display: flex; gap: 6px; }
+.miniTop { display: flex; flex-direction: column; gap: 6px; }
+.miniNow { min-width: 0; width: 100%; }
+#miniTitle { font-size: .95rem; }
+#miniSub { font-size: .8rem; color: var(--muted); }
+.miniBtns { display: flex; gap: 8px; align-items: center; }
 
 .overlay {
   position: fixed; inset: 0;
@@ -606,7 +632,7 @@ input[type="range"] {
 }
 
 .toast {
-  position: fixed; left: 50%; bottom: 110px;
+  position: fixed; left: 50%; bottom: 150px;
   transform: translateX(-50%) translateY(16px);
   opacity: 0; z-index: 90;
   padding: 10px 18px; border-radius: 999px;
@@ -627,6 +653,61 @@ input[type="range"] {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+/* --- 追加: ボトムナビゲーション及び設定タブ連携用スタイル --- */
+.bottomNav {
+  position: fixed;
+  bottom: 74px; /* ミニプレーヤーの上に配置 */
+  left: 0; right: 0;
+  height: 64px;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+}
+.navTab {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+.navTab.active {
+  color: var(--accent);
+  font-weight: 700;
+}
+.navTab .icon {
+  font-size: 1.35rem;
+  margin-bottom: 3px;
+}
+
+#settingsTabContainer {
+  display: none;
+  padding: 0 16px 20px;
+}
+#settingsTabContainer .menuBtn {
+  display: none;
+}
+#settingsTabContainer .sideHead {
+  padding: 0 0 16px 0;
+  border-bottom: none;
+}
+#settingsTabContainer .sideBody {
+  padding: 0;
+  overflow: visible;
 }
 </style>
 </head>
@@ -667,193 +748,195 @@ input[type="range"] {
 </div>
 
 <aside class="sidebar" id="sidebar">
-  <div class="sideHead">
-    <div class="sideHeadLeft">
-      <button class="backBtn" id="btnSideBack">← 戻る</button>
-      <div class="sideTitle" id="sideTitle">メニュー</div>
+  <div id="sidebarInner" style="display:flex; flex-direction:column; height:100%; width:100%;">
+    <div class="sideHead">
+      <div class="sideHeadLeft">
+        <button class="backBtn" id="btnSideBack">← 戻る</button>
+        <div class="sideTitle" id="sideTitle">メニュー</div>
+      </div>
+      <button class="menuBtn" id="btnCloseMenu">×</button>
     </div>
-    <button class="menuBtn" id="btnCloseMenu">×</button>
-  </div>
-  <div class="sideBody">
-    <div class="menuList" id="mainMenuList">
-      <button class="menuItem" data-section="optionsSection">再生オプション<span>再生速度・立体音響(2D-16D)・ビジュアル・キー・フェード・無音スキップ</span></button>
-      <button class="menuItem" data-section="playlistSection">プレイリスト<span>作成・曲の追加・管理</span></button>
-      <button class="menuItem" data-section="queueSection">再生キュー<span>順序変更・クリア</span></button>
-      <button class="menuItem" data-section="eqSection">イコライザー<span>5バンド調整・プリセット</span></button>
-      <button class="menuItem" data-section="timerSection">スリープタイマー<span>自動停止設定</span></button>
-      <button class="menuItem" data-section="statsSection">再生統計<span>再生回数・総再生数推移グラフ・各種リセット</span></button>
-      <button class="menuItem" data-section="themeSection">テーマ・カスタムカラー<span>12色パレット・明暗調整</span></button>
-    </div>
-
-    <section id="optionsSection" class="panelSection">
-      <div class="sectionCard">
-        <div class="sectionTitle">再生速度</div>
-        <div class="meter" style="margin-bottom:8px">
-          <span>スピード</span>
-          <span id="rateText">1.00x</span>
-        </div>
-        <div style="margin-bottom: 10px;">
-          <label style="font-size: .82rem; color: var(--muted); display: block; margin-bottom: 4px;">バー (0.25x - 2.0x)</label>
-          <input type="range" id="playbackRate" min="0.25" max="2.0" step="0.05" value="1.0">
-        </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
-          <label for="customRateInput" style="font-size: .86rem;">カスタム (0.1x - 10x):</label>
-          <input type="number" id="customRateInput" min="0.1" max="10" step="0.1" value="1.0" style="width: 80px; padding: 6px 8px; border-radius: 10px;">
-        </div>
+    <div class="sideBody">
+      <div class="menuList" id="mainMenuList">
+        <button class="menuItem" data-section="optionsSection">再生オプション<span>再生速度・立体音響(2D-16D)・ビジュアル・キー・フェード・無音スキップ</span></button>
+        <button class="menuItem" data-section="playlistSection">プレイリスト<span>作成・曲の追加・管理</span></button>
+        <button class="menuItem" data-section="queueSection">再生キュー<span>順序変更・クリア</span></button>
+        <button class="menuItem" data-section="eqSection">イコライザー<span>5バンド調整・プリセット</span></button>
+        <button class="menuItem" data-section="timerSection">スリープタイマー<span>自動停止設定</span></button>
+        <button class="menuItem" data-section="statsSection">再生統計<span>再生回数・総再生数推移グラフ・各種リセット</span></button>
+        <button class="menuItem" data-section="themeSection">テーマ・カスタムカラー<span>12色パレット・明暗調整</span></button>
       </div>
 
-      <div class="sectionCard">
-        <div class="sectionTitle">波形ビジュアル表示</div>
-        <div class="controls" id="waveModeBtns">
-          <button class="btn small active" data-wave="simple">シンプル</button>
-          <button class="btn small" data-wave="3d">3D (立体波形)</button>
-        </div>
-      </div>
-
-      <div class="sectionCard">
-        <div class="sectionTitle">立体音響モード (2D〜16D)</div>
-        <div class="controls" id="dModeBtns">
-          <button class="btn small active" data-d="2D">2D (通常)</button>
-          <button class="btn small" data-d="3D">3D</button>
-          <button class="btn small" data-d="4D">4D</button>
-          <button class="btn small" data-d="8D">8D</button>
-          <button class="btn small" data-d="16D">16D</button>
-        </div>
-        <div style="font-size:.78rem; color:var(--muted); margin-top:6px" id="dModeDesc">2D: 標準ステレオ再生</div>
-        
-        <div class="meter" style="margin-top:12px">
-          <span>左右手動パン (2D/3D時)</span>
-          <span id="pannerValText">中央</span>
-        </div>
-        <input type="range" id="pannerSlider" min="-1" max="1" step="0.1" value="0">
-      </div>
-
-      <div class="sectionCard">
-        <div class="sectionTitle">キー（ピッチ音高）</div>
-        <div class="meter" style="margin-bottom:8px">
-          <span>音高シフト</span>
-          <span id="pitchText">±0</span>
-        </div>
-        <input type="range" id="pitchShift" min="-6" max="6" step="1" value="0">
-      </div>
-
-      <div class="sectionCard">
-        <div class="sectionTitle">スマート再生設定</div>
-        <div class="controls">
-          <button class="btn small active" id="btnCrossfade">クロスフェード: ON</button>
-          <button class="btn small active" id="btnSilenceSkip">無音スキップ: ON</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="playlistSection" class="panelSection">
-      <div class="sectionCard">
-        <div class="sectionTitle">新規プレイリスト作成</div>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="newPlName" placeholder="プレイリスト名を入力">
-          <button class="btn small" id="btnCreatePl">作成</button>
-        </div>
-      </div>
-      <div id="playlistContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
-    </section>
-
-    <section id="queueSection" class="panelSection">
-      <div id="queueList" style="display:flex; flex-direction:column; gap:8px;"></div>
-      <div class="controls" style="margin-top:12px">
-        <button class="btn small warn" id="btnQueueClear">全消去</button>
-        <button class="btn small ghost" id="btnQueueShuffle">シャッフル</button>
-      </div>
-    </section>
-
-    <section id="eqSection" class="panelSection">
-      <div class="sectionCard">
-        <div class="sectionTitle">プリセット</div>
-        <div class="eqPresetRow" id="eqPresetRow"></div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">5バンド調整 (±12dB)</div>
-        <div class="verticalArea" id="eqBands"></div>
-      </div>
-      <button class="btn small ghost" id="btnEqReset">リセット</button>
-    </section>
-
-    <section id="timerSection" class="panelSection">
-      <div class="sectionCard">
-        <div class="sectionTitle">自動停止タイマー</div>
-        <div class="controls">
-          <button class="btn small active" data-timer="off">OFF</button>
-          <button class="btn small" data-timer="15">15分</button>
-          <button class="btn small" data-timer="30">30分</button>
-          <button class="btn small" data-timer="60">60分</button>
-        </div>
-        <div style="margin-top:10px; color:var(--text); font-size:.86rem" id="timerStatus">タイマーOFF</div>
-      </div>
-    </section>
-
-    <section id="statsSection" class="panelSection">
-      <div class="sectionCard">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
-          <div><span style="color:var(--muted); font-size:.8rem">総再生数</span><div id="statPlays" style="font-size:1.1rem; font-weight:700">0</div></div>
-          <div><span style="color:var(--muted); font-size:.8rem">曲数</span><div id="statSongs" style="font-size:1.1rem; font-weight:700">0</div></div>
-        </div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">再生総数の推移（過去7日間）</div>
-        <div class="chartCanvasWrap">
-          <canvas id="playHistoryChart"></canvas>
-        </div>
-      </div>
-      <div class="sectionCard">
-        <div class="sectionTitle">統計データ操作</div>
-        <button class="btn small danger" id="btnResetStats">再生統計をリセット</button>
-      </div>
-    </section>
-
-    <section id="themeSection" class="panelSection">
-      <div class="sectionCard">
-        <div class="sectionTitle">モード選択</div>
-        <div class="controls">
-          <button class="btn small" id="btnThemeSystem">自動（OS設定）</button>
-          <button class="btn small" id="btnThemeDark">ダーク</button>
-          <button class="btn small" id="btnThemeLight">ライト</button>
-          <button class="btn small" id="btnThemeCustom">カスタム</button>
-        </div>
-      </div>
-      <div class="sectionCard" id="customThemeArea" style="display:none;">
-        <div class="sectionTitle">12色カラー ＆ 明暗微調整</div>
-        
-        <div class="field">
-          <label>背景カラー 1</label>
-          <div class="colorPickerGrid" id="gridColor1"></div>
-          <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtL1" style="font-size:.78rem">100%</span></div>
-          <input type="range" id="sliderL1" min="0" max="200" value="100">
-        </div>
-
-        <div class="field" style="margin-top:12px;">
-          <label>背景カラー 2</label>
-          <div class="colorPickerGrid" id="gridColor2"></div>
-          <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtL2" style="font-size:.78rem">100%</span></div>
-          <input type="range" id="sliderL2" min="0" max="200" value="100">
-        </div>
-
-        <div class="field" style="margin-top:12px;">
-          <label>文字カラー</label>
-          <div class="colorPickerGrid" id="gridTextColor"></div>
-          <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtLText" style="font-size:.78rem">100%</span></div>
-          <input type="range" id="sliderLText" min="0" max="200" value="100">
-        </div>
-
-        <div class="field" style="margin-top:12px;">
-          <label>グラデーション方向</label>
-          <div class="gradDirectionGrid" id="gradDirectionList">
-            <div class="gradOption" data-deg="180deg"><div class="radioDot"></div>上から下 ↓</div>
-            <div class="gradOption" data-deg="90deg"><div class="radioDot"></div>左から右 →</div>
-            <div class="gradOption" data-deg="135deg"><div class="radioDot"></div>斜め ↘</div>
-            <div class="gradOption" data-deg="0deg"><div class="radioDot"></div>下から上 ↑</div>
+      <section id="optionsSection" class="panelSection">
+        <div class="sectionCard">
+          <div class="sectionTitle">再生速度</div>
+          <div class="meter" style="margin-bottom:8px">
+            <span>スピード</span>
+            <span id="rateText">1.00x</span>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label style="font-size: .82rem; color: var(--muted); display: block; margin-bottom: 4px;">バー (0.25x - 2.0x)</label>
+            <input type="range" id="playbackRate" min="0.25" max="2.0" step="0.05" value="1.0">
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+            <label for="customRateInput" style="font-size: .86rem;">カスタム (0.1x - 10x):</label>
+            <input type="number" id="customRateInput" min="0.1" max="10" step="0.1" value="1.0" style="width: 80px; padding: 6px 8px; border-radius: 10px;">
           </div>
         </div>
-      </div>
-    </section>
+
+        <div class="sectionCard">
+          <div class="sectionTitle">波形ビジュアル表示</div>
+          <div class="controls" id="waveModeBtns">
+            <button class="btn small active" data-wave="simple">シンプル</button>
+            <button class="btn small" data-wave="3d">3D (立体波形)</button>
+          </div>
+        </div>
+
+        <div class="sectionCard">
+          <div class="sectionTitle">立体音響モード (2D〜16D)</div>
+          <div class="controls" id="dModeBtns">
+            <button class="btn small active" data-d="2D">2D (通常)</button>
+            <button class="btn small" data-d="3D">3D</button>
+            <button class="btn small" data-d="4D">4D</button>
+            <button class="btn small" data-d="8D">8D</button>
+            <button class="btn small" data-d="16D">16D</button>
+          </div>
+          <div style="font-size:.78rem; color:var(--muted); margin-top:6px" id="dModeDesc">2D: 標準ステレオ再生</div>
+          
+          <div class="meter" style="margin-top:12px">
+            <span>左右手動パン (2D/3D時)</span>
+            <span id="pannerValText">中央</span>
+          </div>
+          <input type="range" id="pannerSlider" min="-1" max="1" step="0.1" value="0">
+        </div>
+
+        <div class="sectionCard">
+          <div class="sectionTitle">キー（ピッチ音高）</div>
+          <div class="meter" style="margin-bottom:8px">
+            <span>音高シフト</span>
+            <span id="pitchText">±0</span>
+          </div>
+          <input type="range" id="pitchShift" min="-6" max="6" step="1" value="0">
+        </div>
+
+        <div class="sectionCard">
+          <div class="sectionTitle">スマート再生設定</div>
+          <div class="controls">
+            <button class="btn small active" id="btnCrossfade">クロスフェード: ON</button>
+            <button class="btn small active" id="btnSilenceSkip">無音スキップ: ON</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="playlistSection" class="panelSection">
+        <div class="sectionCard">
+          <div class="sectionTitle">新規プレイリスト作成</div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="newPlName" placeholder="プレイリスト名を入力">
+            <button class="btn small" id="btnCreatePl">作成</button>
+          </div>
+        </div>
+        <div id="playlistContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+      </section>
+
+      <section id="queueSection" class="panelSection">
+        <div id="queueList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div class="controls" style="margin-top:12px">
+          <button class="btn small warn" id="btnQueueClear">全消去</button>
+          <button class="btn small ghost" id="btnQueueShuffle">シャッフル</button>
+        </div>
+      </section>
+
+      <section id="eqSection" class="panelSection">
+        <div class="sectionCard">
+          <div class="sectionTitle">プリセット</div>
+          <div class="eqPresetRow" id="eqPresetRow"></div>
+        </div>
+        <div class="sectionCard">
+          <div class="sectionTitle">5バンド調整 (±12dB)</div>
+          <div class="verticalArea" id="eqBands"></div>
+        </div>
+        <button class="btn small ghost" id="btnEqReset">リセット</button>
+      </section>
+
+      <section id="timerSection" class="panelSection">
+        <div class="sectionCard">
+          <div class="sectionTitle">自動停止タイマー</div>
+          <div class="controls">
+            <button class="btn small active" data-timer="off">OFF</button>
+            <button class="btn small" data-timer="15">15分</button>
+            <button class="btn small" data-timer="30">30分</button>
+            <button class="btn small" data-timer="60">60分</button>
+          </div>
+          <div style="margin-top:10px; color:var(--text); font-size:.86rem" id="timerStatus">タイマーOFF</div>
+        </div>
+      </section>
+
+      <section id="statsSection" class="panelSection">
+        <div class="sectionCard">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
+            <div><span style="color:var(--muted); font-size:.8rem">総再生数</span><div id="statPlays" style="font-size:1.1rem; font-weight:700">0</div></div>
+            <div><span style="color:var(--muted); font-size:.8rem">曲数</span><div id="statSongs" style="font-size:1.1rem; font-weight:700">0</div></div>
+          </div>
+        </div>
+        <div class="sectionCard">
+          <div class="sectionTitle">再生総数の推移（過去7日間）</div>
+          <div class="chartCanvasWrap">
+            <canvas id="playHistoryChart"></canvas>
+          </div>
+        </div>
+        <div class="sectionCard">
+          <div class="sectionTitle">統計データ操作</div>
+          <button class="btn small danger" id="btnResetStats">再生統計をリセット</button>
+        </div>
+      </section>
+
+      <section id="themeSection" class="panelSection">
+        <div class="sectionCard">
+          <div class="sectionTitle">モード選択</div>
+          <div class="controls">
+            <button class="btn small" id="btnThemeSystem">自動（OS設定）</button>
+            <button class="btn small" id="btnThemeDark">ダーク</button>
+            <button class="btn small" id="btnThemeLight">ライト</button>
+            <button class="btn small" id="btnThemeCustom">カスタム</button>
+          </div>
+        </div>
+        <div class="sectionCard" id="customThemeArea" style="display:none;">
+          <div class="sectionTitle">12色カラー ＆ 明暗微調整</div>
+          
+          <div class="field">
+            <label>背景カラー 1</label>
+            <div class="colorPickerGrid" id="gridColor1"></div>
+            <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtL1" style="font-size:.78rem">100%</span></div>
+            <input type="range" id="sliderL1" min="0" max="200" value="100">
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>背景カラー 2</label>
+            <div class="colorPickerGrid" id="gridColor2"></div>
+            <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtL2" style="font-size:.78rem">100%</span></div>
+            <input type="range" id="sliderL2" min="0" max="200" value="100">
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>文字カラー</label>
+            <div class="colorPickerGrid" id="gridTextColor"></div>
+            <div class="meter"><span style="font-size:.78rem">明るさ微調整</span><span id="txtLText" style="font-size:.78rem">100%</span></div>
+            <input type="range" id="sliderLText" min="0" max="200" value="100">
+          </div>
+
+          <div class="field" style="margin-top:12px;">
+            <label>グラデーション方向</label>
+            <div class="gradDirectionGrid" id="gradDirectionList">
+              <div class="gradOption" data-deg="180deg"><div class="radioDot"></div>上から下 ↓</div>
+              <div class="gradOption" data-deg="90deg"><div class="radioDot"></div>左から右 →</div>
+              <div class="gradOption" data-deg="135deg"><div class="radioDot"></div>斜め ↘</div>
+              <div class="gradOption" data-deg="0deg"><div class="radioDot"></div>下から上 ↑</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 </aside>
 
@@ -862,9 +945,13 @@ input[type="range"] {
     <header class="header">
       <div class="brand">
         <button class="menuBtn" id="btnMenu">☰</button>
-        <div>
-          <h1 id="nowTitle">未再生</h1>
-          <div id="nowSub">ファイルをドロップまたは選択してください</div>
+        <div class="titleArea">
+          <div class="scroll-container" id="titleContainer">
+            <h1 id="nowTitle" class="scroll-text">未再生</h1>
+          </div>
+          <div class="scroll-container" id="subContainer">
+            <div id="nowSub" class="scroll-text">ファイルをドロップまたは選択してください</div>
+          </div>
         </div>
       </div>
       <div class="headerRight">
@@ -880,72 +967,100 @@ input[type="range"] {
       </div>
 
       <div class="playerPanel">
-        <div class="field">
-          <label>音声ファイル読み込み（ドラッグ＆ドロップ対応・自動ストレージ保存）</label>
-          <div class="fileInputRow">
-            <input type="file" id="folder" webkitdirectory multiple accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac">
-            <button class="btn warn small" id="btnResetFiles" style="white-space:nowrap;">全リセット</button>
+        <!-- ホームタブのコンテンツ (一覧以外) -->
+        <div id="homeElements">
+          <div class="field">
+            <label>音声ファイル読み込み（ドラッグ＆ドロップ対応・自動ストレージ保存）</label>
+            <div class="fileInputRow">
+              <input type="file" id="folder" webkitdirectory multiple accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac,.aac">
+              <button class="btn warn small" id="btnResetFiles" style="white-space:nowrap;">全リセット</button>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button class="btn" id="btnPrev">⏮ 前へ</button>
+            <button class="btn small ghost" id="btnRewind10" title="10秒巻き戻し">↺ 10s</button>
+            <button class="btn btnPlayMain" id="btnPlay">▶ 再生</button>
+            <button class="btn small ghost" id="btnForward10" title="10秒早送り">10s ↻</button>
+            <button class="btn" id="btnNext">次へ ⏭</button>
+            <button class="btn warn" id="btnFav">☆</button>
+            <button class="btn small" id="btnMainShuffle">🔀</button>
+            <button class="btn small" id="btnMainRepeat">🔁</button>
+          </div>
+
+          <div class="progressWrap">
+            <div class="seekbarContainer">
+              <canvas id="seekbarHeatmap" class="seekbarHeatmap"></canvas>
+              <input type="range" id="progress" min="0" max="100" value="0">
+            </div>
+            <div class="timeLine">
+              <span id="timeNow">0:00</span>
+              <span id="timeAll">0:00</span>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:12px">
+            <div class="meter">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <button class="btn small ghost" id="btnMuteToggle" style="padding:2px 8px; font-size:0.8rem;">🔊</button>
+                音量
+              </span>
+              <span id="volText">100%</span>
+            </div>
+            <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+          </div>
+
+          <div class="waveWrap">
+            <canvas id="wave" class="wave"></canvas>
           </div>
         </div>
 
-        <div class="field">
-          <input type="text" id="search" placeholder="曲名やアーティストで検索">
-        </div>
-
-        <div class="controls">
-          <button class="btn" id="btnPrev">⏮ 前へ</button>
-          <button class="btn small ghost" id="btnRewind10" title="10秒巻き戻し">↺ 10s</button>
-          <button class="btn btnPlayMain" id="btnPlay">▶ 再生</button>
-          <button class="btn small ghost" id="btnForward10" title="10秒早送り">10s ↻</button>
-          <button class="btn" id="btnNext">次へ ⏭</button>
-          <button class="btn warn" id="btnFav">☆</button>
-          <button class="btn small" id="btnMainShuffle">🔀</button>
-          <button class="btn small" id="btnMainRepeat">🔁</button>
-        </div>
-
-        <div class="progressWrap">
-          <div class="seekbarContainer">
-            <canvas id="seekbarHeatmap" class="seekbarHeatmap"></canvas>
-            <input type="range" id="progress" min="0" max="100" value="0">
+        <!-- プレイリストタブのコンテンツ (曲一覧のみ) -->
+        <div id="playlistElements" style="display:none; flex-direction:column;">
+          <div class="field" style="margin-bottom: 12px;">
+            <input type="text" id="search" placeholder="曲名やアーティストで検索">
           </div>
-          <div class="timeLine">
-            <span id="timeNow">0:00</span>
-            <span id="timeAll">0:00</span>
+          <div class="songHead">
+            <div style="font-weight:700">曲一覧</div>
+            <div class="pill" id="shuffleState">シャッフル: ON</div>
           </div>
+          <div id="list" class="songList"></div>
         </div>
-
-        <div class="field" style="margin-top:12px">
-          <div class="meter">
-            <span style="display:flex; align-items:center; gap:6px;">
-              <button class="btn small ghost" id="btnMuteToggle" style="padding:2px 8px; font-size:0.8rem;">🔊</button>
-              音量
-            </span>
-            <span id="volText">100%</span>
-          </div>
-          <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
-        </div>
-
-        <div class="waveWrap">
-          <canvas id="wave" class="wave"></canvas>
-        </div>
-
-        <div class="songHead">
-          <div style="font-weight:700">曲一覧</div>
-          <div class="pill" id="shuffleState">シャッフル: ON</div>
-        </div>
-
-        <div id="list" class="songList"></div>
       </div>
     </div>
+    
+    <!-- 設定タブのコンテンツを注入するコンテナ -->
+    <div id="settingsTabContainer"></div>
   </div>
 </div>
 
+<!-- 新規追加: ボトムナビゲーション (固定フレームの上) -->
+<div class="bottomNav" id="bottomNav">
+  <button class="navTab active" data-target="home">
+    <div class="icon">🏠</div>
+    ホーム
+  </button>
+  <button class="navTab" data-target="playlist">
+    <div class="icon">🎵</div>
+    プレイリスト
+  </button>
+  <button class="navTab" data-target="settings">
+    <div class="icon">⚙️</div>
+    設定
+  </button>
+</div>
+
+<!-- 現在再生されている曲を表示する固定フレーム (ミニプレーヤー) -->
 <div class="miniPlayer">
   <div class="miniInner">
     <div class="miniTop">
       <div class="miniNow">
-        <div id="miniTitle">停止中</div>
-        <div id="miniSub">ファイル未選択</div>
+        <div class="scroll-container">
+          <div id="miniTitle" class="scroll-text">停止中</div>
+        </div>
+        <div class="scroll-container">
+          <div id="miniSub" class="scroll-text">ファイル未選択</div>
+        </div>
       </div>
       <div class="miniBtns">
         <button class="btn small" id="miniPrev">⏮</button>
@@ -995,7 +1110,7 @@ input[type="range"] {
     "#7209b7", "#f72585", "#121212", "#ffffff"
   ];
 
-  const dbName = "Music Player v3.6";
+  const dbName = "Music Player v3.8";
   let db = null;
   function initDB() {
     return new Promise(resolve => {
@@ -1172,6 +1287,7 @@ input[type="range"] {
     sideTitle: document.getElementById("sideTitle"),
     overlay: document.getElementById("overlay"),
     sidebar: document.getElementById("sidebar"),
+    sidebarInner: document.getElementById("sidebarInner"), // 新規追加
     mainMenuList: document.getElementById("mainMenuList"),
     btnPrev: document.getElementById("btnPrev"),
     btnRewind10: document.getElementById("btnRewind10"),
@@ -1238,6 +1354,55 @@ input[type="range"] {
     plSelectList: document.getElementById("plSelectList"),
     btnClosePlSheet: document.getElementById("btnClosePlSheet")
   };
+
+  const titleObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const container = entry.target;
+      container._isIntersecting = entry.isIntersecting;
+      const textEl = container.querySelector(".scroll-text");
+      if (textEl && textEl.classList.contains("scrolling")) {
+        if (entry.isIntersecting && document.visibilityState === "visible") {
+          textEl.style.animationPlayState = "running";
+        } else {
+          textEl.style.animationPlayState = "paused";
+        }
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll(".scroll-container").forEach(c => titleObserver.observe(c));
+
+  document.addEventListener("visibilitychange", () => {
+    document.querySelectorAll(".scroll-container").forEach(container => {
+      const textEl = container.querySelector(".scroll-text");
+      if (textEl && textEl.classList.contains("scrolling")) {
+        if (document.visibilityState === "visible" && container._isIntersecting) {
+          textEl.style.animationPlayState = "running";
+        } else {
+          textEl.style.animationPlayState = "paused";
+        }
+      }
+    });
+  });
+
+  function updateTitleTextAndScroll(element, text) {
+    const container = element.closest(".scroll-container");
+    element.classList.remove("scrolling");
+    element.style.animationPlayState = "paused";
+    element.textContent = text;
+
+    requestAnimationFrame(() => {
+      if (!container) return;
+      const overflow = element.scrollWidth - container.clientWidth;
+      if (overflow > 6) {
+        element.style.setProperty("--scroll-dist", `-${overflow + 12}px`);
+        element.classList.add("scrolling");
+        if (container._isIntersecting && document.visibilityState === "visible") {
+          element.style.animationPlayState = "running";
+        }
+      }
+    });
+  }
 
   function loadJSON(k, f){ try{ const r = localStorage.getItem(k); return r ? JSON.parse(r) : f; }catch{ return f; } }
   function loadBool(k, f){ const r = localStorage.getItem(k); return r === null ? f : r === "true"; }
@@ -1758,8 +1923,10 @@ input[type="range"] {
     audio.src = "";
     el.folder.value = "";
     updateArtwork(null);
-    el.nowTitle.textContent = "未再生";
-    el.nowSub.textContent = "ファイルをドロップまたは選択してください";
+    updateTitleTextAndScroll(el.nowTitle, "未再生");
+    updateTitleTextAndScroll(el.nowSub, "ファイルをドロップまたは選択してください");
+    updateTitleTextAndScroll(el.miniTitle, "停止中");
+    updateTitleTextAndScroll(el.miniSub, "ファイル未選択");
     saveState();
     renderAll();
     toast("全ファイルをリセットしました");
@@ -1810,8 +1977,10 @@ input[type="range"] {
       audio.src = "";
       state.currentSong = null;
       updateArtwork(null);
-      el.nowTitle.textContent = "未再生";
-      el.nowSub.textContent = "ファイルをドロップまたは選択してください";
+      updateTitleTextAndScroll(el.nowTitle, "未再生");
+      updateTitleTextAndScroll(el.nowSub, "ファイルをドロップまたは選択してください");
+      updateTitleTextAndScroll(el.miniTitle, "停止中");
+      updateTitleTextAndScroll(el.miniSub, "ファイル未選択");
     }
 
     state.queue = state.queue.filter(q => q !== song.name);
@@ -1903,10 +2072,10 @@ input[type="range"] {
 
   function updateNowPlayingUI(song){
     if(song){
-      el.nowTitle.textContent = song.title;
-      el.miniTitle.textContent = song.title;
-      el.nowSub.textContent = song.artist;
-      el.miniSub.textContent = song.artist;
+      updateTitleTextAndScroll(el.nowTitle, song.title);
+      updateTitleTextAndScroll(el.miniTitle, song.title);
+      updateTitleTextAndScroll(el.nowSub, song.artist);
+      updateTitleTextAndScroll(el.miniSub, song.artist);
       el.btnFav.textContent = state.favorites.includes(song.name) ? "★" : "☆";
       el.btnFav.classList.toggle("active", state.favorites.includes(song.name));
 
@@ -2540,8 +2709,9 @@ input[type="range"] {
     setWaveMode(state.waveMode);
   }
 
-  // Sidebar Controls
+  // Sidebar Controls Modification for Tabs
   function openMenu(sectionId) {
+    el.sidebar.appendChild(el.sidebarInner);
     el.sidebar.classList.add("open");
     el.overlay.classList.add("open");
     state.menuOpen = true;
@@ -2557,6 +2727,11 @@ input[type="range"] {
     el.sidebar.classList.remove("open");
     el.overlay.classList.remove("open");
     state.menuOpen = false;
+    
+    const activeTab = document.querySelector('.navTab.active');
+    if (activeTab && activeTab.dataset.target === 'settings') {
+      document.getElementById("settingsTabContainer").appendChild(el.sidebarInner);
+    }
   }
 
   function showMainMenuList() {
@@ -2626,16 +2801,109 @@ input[type="range"] {
     toast(`リピート再生: ${state.repeat ? "ON" : "OFF"}`);
   });
 
+  // --- 新規追加: ボトムタブナビゲーションのロジック ---
+  const elNavTabs = document.querySelectorAll(".navTab");
+  const elHomeElements = document.getElementById("homeElements");
+  const elPlaylistElements = document.getElementById("playlistElements");
+  const elSettingsTabContainer = document.getElementById("settingsTabContainer");
+  const elGrid = document.querySelector(".grid");
+  const elCoverBox = document.querySelector(".coverBox");
+
+  elNavTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      elNavTabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const target = tab.dataset.target;
+
+      if (target === "home") {
+        elGrid.style.display = "grid";
+        elGrid.style.gridTemplateColumns = ""; 
+        elHomeElements.style.display = "block";
+        elPlaylistElements.style.display = "none";
+        elCoverBox.style.display = "flex";
+        elSettingsTabContainer.style.display = "none";
+        el.sidebar.appendChild(el.sidebarInner);
+      } else if (target === "playlist") {
+        elGrid.style.display = "grid";
+        elGrid.style.gridTemplateColumns = "1fr"; 
+        elHomeElements.style.display = "none";
+        elPlaylistElements.style.display = "flex";
+        elCoverBox.style.display = "none"; 
+        elSettingsTabContainer.style.display = "none";
+        el.sidebar.appendChild(el.sidebarInner);
+      } else if (target === "settings") {
+        elGrid.style.display = "none";
+        elSettingsTabContainer.style.display = "block";
+        elSettingsTabContainer.appendChild(el.sidebarInner);
+      }
+    });
+  });
+
+  // Audio Event Listeners (Rest of original code)
+  audio.addEventListener("timeupdate", () => {
+    if (isSlidingRange) return;
+    const c = audio.currentTime;
+    const d = audio.duration;
+    if (!Number.isFinite(d)) return;
+
+    const p = (c / d) * 100;
+    el.progress.value = p;
+    el.miniProgress.value = p;
+    el.timeNow.textContent = fmtTime(c);
+    el.timeAll.textContent = fmtTime(d);
+
+    if (state.timerSec > 0 && sleepTimerEnd) {
+      const remain = Math.max(0, sleepTimerEnd - Date.now());
+      el.timerStatus.textContent = `残り: ${Math.ceil(remain/60000)}分`;
+      if (remain === 0) {
+        audio.pause();
+        updatePlayPauseUI();
+        state.timerSec = 0;
+        sleepTimerEnd = null;
+        el.timerStatus.textContent = "タイマーOFF";
+        document.querySelectorAll("[data-timer]").forEach(b => b.classList.toggle("active", b.dataset.timer==="off"));
+        toast("スリープタイマーで停止しました");
+      }
+    }
+
+    if (c > d / 2 && c > 10) recordPlayCount();
+  });
+
+  audio.addEventListener("ended", () => {
+    if(!state.repeat) nextTrack();
+  });
+
+  const handleSeek = e => {
+    const d = audio.duration;
+    if(Number.isFinite(d)) audio.currentTime = (e.target.value / 100) * d;
+  };
+
+  el.progress.addEventListener("mousedown", () => isSlidingRange = true);
+  el.progress.addEventListener("touchstart", () => isSlidingRange = true, {passive:true});
+  el.progress.addEventListener("change", e => { handleSeek(e); isSlidingRange = false; });
+  
+  el.miniProgress.addEventListener("mousedown", () => isSlidingRange = true);
+  el.miniProgress.addEventListener("touchstart", () => isSlidingRange = true, {passive:true});
+  el.miniProgress.addEventListener("change", e => { handleSeek(e); isSlidingRange = false; });
+
+  el.search.addEventListener("input", () => {
+    state.search = el.search.value;
+    renderSongList();
+  });
+
   el.playbackRate.addEventListener("input", () => {
     currentRate = Number(el.playbackRate.value);
     el.customRateInput.value = currentRate;
     applyPitchAndRate();
   });
 
-  el.customRateInput.addEventListener("change", () => {
-    currentRate = Math.min(10, Math.max(0.1, Number(el.customRateInput.value) || 1));
-    el.playbackRate.value = currentRate;
-    applyPitchAndRate();
+  el.customRateInput.addEventListener("input", () => {
+    let val = parseFloat(el.customRateInput.value);
+    if (!isNaN(val) && val > 0) {
+      currentRate = val;
+      el.playbackRate.value = Math.min(Math.max(val, 0.25), 2.0);
+      applyPitchAndRate();
+    }
   });
 
   el.pitchShift.addEventListener("input", () => {
@@ -2647,146 +2915,110 @@ input[type="range"] {
   el.pannerSlider.addEventListener("input", () => {
     state.panValue = Number(el.pannerSlider.value);
     if (pannerNode) pannerNode.pan.value = state.panValue;
-    el.pannerValText.textContent = state.panValue === 0 ? "中央" : state.panValue < 0 ? `左 ${Math.abs(state.panValue)}` : `右 ${state.panValue}`;
+    el.pannerValText.textContent = state.panValue === 0 ? "中央" : state.panValue < 0 ? `左 ${(Math.abs(state.panValue)*100).toFixed(0)}%` : `右 ${(state.panValue*100).toFixed(0)}%`;
+    saveState();
   });
 
   el.btnCrossfade.addEventListener("click", () => {
     state.crossfade = !state.crossfade;
-    el.btnCrossfade.classList.toggle("active", state.crossfade);
-    el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
     saveState();
+    el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
+    el.btnCrossfade.classList.toggle("active", state.crossfade);
   });
 
   el.btnSilenceSkip.addEventListener("click", () => {
     state.silenceSkip = !state.silenceSkip;
-    el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
-    el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
     saveState();
+    el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
+    el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
   });
 
-  // Sleep Timer
   document.querySelectorAll("[data-timer]").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("[data-timer]").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-
-      const minutes = btn.dataset.timer;
-      if (sleepTimerId) clearTimeout(sleepTimerId);
-
-      if (minutes === "off") {
+      const val = btn.dataset.timer;
+      if (val === "off") {
+        state.timerSec = 0;
         sleepTimerEnd = null;
         el.timerStatus.textContent = "タイマーOFF";
-        toast("スリープタイマーを解除しました");
       } else {
-        const ms = Number(minutes) * 60 * 1000;
-        sleepTimerEnd = Date.now() + ms;
-        el.timerStatus.textContent = `${minutes}分後に自動停止します`;
-        toast(`${minutes}分タイマーをセットしました`);
-
-        sleepTimerId = setTimeout(() => {
-          audio.pause();
-          updatePlayPauseUI();
-          toast("スリープタイマーにより停止しました");
-          el.timerStatus.textContent = "タイマーOFF";
-        }, ms);
+        state.timerSec = parseInt(val) * 60;
+        sleepTimerEnd = Date.now() + state.timerSec * 1000;
+        el.timerStatus.textContent = `残り: ${val}分`;
+        toast(`${val}分後に停止します`);
       }
     });
   });
 
-  // Audio Progress & Seekbar Sync
-  audio.addEventListener("timeupdate", () => {
-    if (!isSlidingRange && audio.duration) {
-      const pct = (audio.currentTime / audio.duration) * 100;
-      el.progress.value = pct;
-      el.miniProgress.value = pct;
-      el.timeNow.textContent = fmtTime(audio.currentTime);
-      el.timeAll.textContent = fmtTime(audio.duration);
-    }
-
-    if (audio.currentTime > 5 && !hasCountedCurrentSong) {
-      recordPlayCount();
-    }
-  });
-
-  audio.addEventListener("ended", () => {
-    if (!state.repeat) nextTrack();
-  });
-
-  [el.progress, el.miniProgress].forEach(p => {
-    p.addEventListener("input", () => {
-      isSlidingRange = true;
-      if (audio.duration) {
-        const targetTime = (p.value / 100) * audio.duration;
-        el.timeNow.textContent = fmtTime(targetTime);
-      }
-    });
-    
-    p.addEventListener("change", () => {
-      if (audio.duration) {
-        audio.currentTime = (p.value / 100) * audio.duration;
-      }
-      isSlidingRange = false;
-    });
-  });
-
-  el.search.addEventListener("input", () => {
-    state.search = el.search.value;
-    renderSongList();
-  });
-
-  // Initialize Data
-  audio.loop = state.repeat;
-  
-  initDB().then(() => {
-    reloadPlaylistFromDB();
-  });
-
-  // Drag & Drop Handlers
-  document.addEventListener("dragover", e => {
-    e.preventDefault();
-    el.shell.classList.add("dragover");
-  });
-  document.addEventListener("dragleave", e => {
-    el.shell.classList.remove("dragover");
-  });
-  document.addEventListener("drop", e => {
+  document.body.addEventListener("dragover", e => { e.preventDefault(); el.shell.classList.add("dragover"); });
+  document.body.addEventListener("dragleave", () => el.shell.classList.remove("dragover"));
+  document.body.addEventListener("drop", e => {
     e.preventDefault();
     el.shell.classList.remove("dragover");
-    if (e.dataTransfer.files.length) {
-      loadFiles(e.dataTransfer.files);
-    }
+    if(e.dataTransfer.files.length) loadFiles(e.dataTransfer.files);
   });
 
   el.folder.addEventListener("change", e => {
-    if (e.target.files.length) loadFiles(e.target.files);
+    if(e.target.files.length) loadFiles(e.target.files);
   });
 
-  // Final Setup
-  applyTheme();
-  el.btnCrossfade.classList.toggle("active", state.crossfade);
-  el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
-  el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
-  el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
-  el.playbackRate.value = currentRate;
-  el.customRateInput.value = currentRate;
-  el.pitchShift.value = state.pitchSemitones;
-  el.pannerSlider.value = state.panValue;
-  updateVolumeUI(Number(localStorage.getItem(STORAGE.volume) || 1));
-  drawWaveform();
-
-  // Keyboard Shortcuts Bindings
   document.addEventListener("keydown", e => {
-    if(e.target.tagName === "INPUT") return;
-    if(e.code === "Space") { e.preventDefault(); playPause(); }
-    if(e.code === "ArrowLeft") { audio.currentTime = Math.max(0, audio.currentTime - 5); }
-    if(e.code === "ArrowRight") { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5); }
-    if(e.code === "ArrowUp") { e.preventDefault(); updateVolumeUI(Math.min(1, currentVolumeTarget + 0.05)); }
-    if(e.code === "ArrowDown") { e.preventDefault(); updateVolumeUI(Math.max(0, currentVolumeTarget - 0.05)); }
-    if(e.code === "KeyM") { el.btnMuteToggle.click(); }
-    if(e.code === "KeyF") { el.btnFav.click(); }
-    if(e.key === "?") { showShortcutModal(); }
+    if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) return;
+    
+    switch(e.code) {
+      case "Space":
+      case "MediaPlayPause":
+        e.preventDefault(); playPause(); break;
+      case "ArrowLeft":
+        e.preventDefault(); audio.currentTime = Math.max(0, audio.currentTime - 5); break;
+      case "ArrowRight":
+        e.preventDefault(); audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 5); break;
+      case "ArrowUp":
+        e.preventDefault(); updateVolumeUI(Math.min(1, currentVolumeTarget + 0.05)); break;
+      case "ArrowDown":
+        e.preventDefault(); updateVolumeUI(Math.max(0, currentVolumeTarget - 0.05)); break;
+      case "KeyM":
+        e.preventDefault(); el.btnMuteToggle.click(); break;
+      case "KeyF":
+        e.preventDefault(); if(state.currentSong) toggleFav(state.currentSong.name); break;
+      case "Slash":
+        if(e.shiftKey) { e.preventDefault(); showShortcutModal(); }
+        break;
+      case "MediaTrackNext":
+        e.preventDefault(); nextTrack(); break;
+      case "MediaTrackPrevious":
+        e.preventDefault(); prevTrack(); break;
+    }
   });
 
+  navigator.mediaSession?.setActionHandler('play', playPause);
+  navigator.mediaSession?.setActionHandler('pause', playPause);
+  navigator.mediaSession?.setActionHandler('previoustrack', prevTrack);
+  navigator.mediaSession?.setActionHandler('nexttrack', nextTrack);
+  navigator.mediaSession?.setActionHandler('seekto', (details) => {
+    if (details.fastSeek && 'fastSeek' in audio) {
+      audio.fastSeek(details.seekTime);
+    } else {
+      audio.currentTime = details.seekTime;
+    }
+    updateMediaSessionPosition();
+  });
+
+  window.addEventListener("load", async () => {
+    await initDB();
+    await reloadPlaylistFromDB();
+    updateVolumeUI(Number(loadStr(STORAGE.volume, "1")));
+    el.btnCrossfade.textContent = `クロスフェード: ${state.crossfade ? "ON" : "OFF"}`;
+    el.btnCrossfade.classList.toggle("active", state.crossfade);
+    el.btnSilenceSkip.textContent = `無音スキップ: ${state.silenceSkip ? "ON" : "OFF"}`;
+    el.btnSilenceSkip.classList.toggle("active", state.silenceSkip);
+    el.pannerSlider.value = state.panValue;
+    el.pannerValText.textContent = state.panValue === 0 ? "中央" : state.panValue < 0 ? `左 ${(Math.abs(state.panValue)*100).toFixed(0)}%` : `右 ${(state.panValue*100).toFixed(0)}%`;
+    applyPitchAndRate();
+    renderAll();
+    drawWaveform();
+  });
 })();
 </script>
 </body>
